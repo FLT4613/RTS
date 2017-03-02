@@ -5,14 +5,14 @@
 			"name": "flash build + launch",
 			"type": "fdb",
 			"request": "launch",
-			"program": "${workspaceRoot}/export/flash/bin/${APPLICATION_FILE}.swf",
+			"program": "${workspaceRoot}/export/flash/bin/RTS.swf",
 			"preLaunchTask": "flash debug (build only)"
 		},
 		{
 			"name": "flash launch",
 			"type": "fdb",
 			"request": "launch",
-			"program": "${workspaceRoot}/export/flash/bin/${APPLICATION_FILE}.swf"
+			"program": "${workspaceRoot}/export/flash/bin/RTS.swf"
 		}
 	]
 }
