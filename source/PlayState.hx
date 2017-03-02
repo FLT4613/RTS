@@ -8,7 +8,7 @@ import flixel.ui.FlxButton;
 import flixel.math.FlxMath;
 import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
-import flixel.group.FlxSpriteGroup;
+import flixel.group.FlxGroup;
 
 import flixel.input.mouse.FlxMouseEventManager;
 import objects.Character;
@@ -17,7 +17,7 @@ class PlayState extends FlxState{
 	/**
 	 * キャラクターのオブジェクトプール
 	 */
-	var characterPool:FlxSpriteGroup;
+	var characterPool:FlxTypedGroup<Character>;
 
 	/**
 	 * 選択範囲の矩形
@@ -31,7 +31,7 @@ class PlayState extends FlxState{
 
 	override public function create():Void{
 		super.create();
-		characterPool=new FlxSpriteGroup();
+		characterPool=new FlxTypedGroup<Character>();
 		selectedRange=new FlxSprite(0,0);
 		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
 		selectedRange.kill();
@@ -39,7 +39,7 @@ class PlayState extends FlxState{
 		for(i in 0...9){
 			var character=new Character(FlxG.random.int(50,FlxG.width-50),FlxG.random.int(50,FlxG.height-50));
 			characterPool.add(character);
-			FlxMouseEventManager.add(character,null,null,character.onMouseOver,character.onMouseOut); 
+			FlxMouseEventManager.add(character,character.onMouseUp,null,character.onMouseOver,character.onMouseOut); 
 		}
 		add(characterPool);
 		add(selectedRange);
@@ -60,7 +60,12 @@ class PlayState extends FlxState{
 			);
 		}
 		if(FlxG.mouse.justReleased){
-			selectedRange.kill();
+			characterPool.forEachAlive(function(character){
+				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
+					character.choosing=true;
+				}
+			});
+			selectedRange.kill();	
 		}
 		super.update(elapsed);
 	}
