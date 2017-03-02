@@ -12,6 +12,9 @@ import flixel.input.mouse.FlxMouseEventManager;
 import objects.Character;
 
 class PlayState extends FlxState{
+	/**
+	 * キャラクターのオブジェクトプール
+	 */
 	var characterPool:FlxSpriteGroup;
 
 	override public function create():Void{
