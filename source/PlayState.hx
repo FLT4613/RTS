@@ -39,7 +39,7 @@ class PlayState extends FlxState{
 		for(i in 0...9){
 			var character=new Character(FlxG.random.int(50,FlxG.width-50),FlxG.random.int(50,FlxG.height-50));
 			characterPool.add(character);
-			FlxMouseEventManager.add(character,character.onMouseUp,null,character.onMouseOver,character.onMouseOut); 
+			FlxMouseEventManager.add(character,null,character.onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
 		add(characterPool);
 		add(selectedRange);
