@@ -51,6 +51,11 @@ class PlayState extends FlxState{
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
 		}
+		if(FlxG.mouse.justPressedRight){
+			characterPool.forEachAlive(function(character){
+				character.choosing=false;
+			});			
+		}
 		if(FlxG.mouse.pressed){
 			selectedRange.clipRect=FlxRect.weak(
 				(FlxG.mouse.x>selectedRangeStartPos.x)?selectedRangeStartPos.x:FlxG.mouse.x,
