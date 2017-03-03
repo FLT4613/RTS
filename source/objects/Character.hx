@@ -1,5 +1,7 @@
 package objects;
 import flixel.FlxSprite;
+import flixel.util.FlxPath;
+import flixel.math.FlxPoint;
 
 class Character extends FlxSprite{
 
@@ -7,8 +9,10 @@ class Character extends FlxSprite{
    *  このキャラクターを選択しているか否か
    */
   public var choosing:Bool=false;
+
   override public function new(x:Float,y:Float):Void{
     super(x,y);
+    path=new FlxPath();
     makeGraphic(16, 16, 0xFFFFFFFF);
   }
 
@@ -19,6 +23,17 @@ class Character extends FlxSprite{
     }else{
       this.color=0xFFFFFF;
     }
+  }
+
+  /**
+   * キャラクターを移動させる
+   @param   dest 目的地 
+   @param   keepChoice 選択状態を維持する(true) しない(false) 
+   */
+  public function moveStart(dest:FlxPoint,?keepChoice:Bool=false){
+    path.cancel();
+    if(!keepChoice)choosing=false;
+    path.start([dest]);
   }
 
 	public function onMouseUp(character:Character){
