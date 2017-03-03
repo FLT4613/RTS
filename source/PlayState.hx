@@ -37,21 +37,29 @@ class PlayState extends FlxState{
 
 	override public function create():Void{
 		super.create();
-		characterPool=new FlxTypedGroup<Character>();
-		selectedRange=new FlxSprite(0,0);
+		
+		// 地形描画領域の定義
 		fieldArea=new FlxObject(0,0,FlxG.width,FlxG.height);
-		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
-		selectedRange.kill();
 		FlxMouseEventManager.add(fieldArea,function(field:FlxObject){
 			characterPool.forEachAlive(function(character){
 				if(character.choosing)character.moveStart(FlxG.mouse.getPosition(),(FlxG.keys.pressed.A)?true:false);
 			});
 		});
+
+		// キャラクターオブジェクトプールの定義
+		characterPool=new FlxTypedGroup<Character>();
 		for(i in 0...9){
 			var character=new Character(FlxG.random.int(50,FlxG.width-50),FlxG.random.int(50,FlxG.height-50));
 			characterPool.add(character);
 			FlxMouseEventManager.add(character,null,character.onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
+
+		// 地形描画領域の定義
+		selectedRange=new FlxSprite(0,0);
+		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
+		selectedRange.kill();
+
+		// 下位レイヤから加える
 		add(characterPool);
 		add(fieldArea);
 		add(selectedRange);
