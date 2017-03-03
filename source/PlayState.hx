@@ -37,7 +37,10 @@ class PlayState extends FlxState{
 
 	override public function create():Void{
 		super.create();
-		
+    // HaxeFlixel組込み機能の使用記述
+    FlxG.debugger.visible = true;
+    FlxG.debugger.toggleKeys = ["ALT"];
+				
 		// 地形描画領域の定義
 		fieldArea=new FlxObject(0,0,FlxG.width,FlxG.height);
 		FlxMouseEventManager.add(fieldArea,function(field:FlxObject){
