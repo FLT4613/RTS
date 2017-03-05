@@ -36,10 +36,6 @@ class Character extends FlxSprite{
     path.start([dest]);
   }
 
-	public function onMouseUp(character:Character){
-    choosing=(choosing)?false:true;
-	}
-
 	public function onMouseOver(character:Character){
 		setGraphicSize(character.graphic.width*2,character.graphic.height*2);
 	}

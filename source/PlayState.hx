@@ -35,6 +35,11 @@ class PlayState extends FlxState{
 	 */
 	var fieldArea:FlxObject;
 
+	/**
+	 * 選んでるキャラクター
+	 */
+	var choosings:FlxTypedGroup<Character>;
+
 	override public function create():Void{
 		super.create();
     // HaxeFlixel組込み機能の使用記述
@@ -44,7 +49,7 @@ class PlayState extends FlxState{
 		// 地形描画領域の定義
 		fieldArea=new FlxObject(0,0,FlxG.width,FlxG.height);
 		FlxMouseEventManager.add(fieldArea,function(field:FlxObject){
-			characterPool.forEachAlive(function(character){
+			choosings.forEachAlive(function(character){
 				if(character.choosing)character.moveStart(FlxG.mouse.getPosition(),(FlxG.keys.pressed.A)?true:false);
 			});
 		});
@@ -54,8 +59,9 @@ class PlayState extends FlxState{
 		for(i in 0...9){
 			var character=new Character(FlxG.random.int(50,FlxG.width-50),FlxG.random.int(50,FlxG.height-50));
 			characterPool.add(character);
-			FlxMouseEventManager.add(character,null,character.onMouseUp,character.onMouseOver,character.onMouseOut); 
+			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
+		choosings=new FlxTypedGroup<Character>();
 
 		// 地形描画領域の定義
 		selectedRange=new FlxSprite(0,0);
@@ -96,5 +102,14 @@ class PlayState extends FlxState{
 			selectedRange.kill();	
 		}
 		super.update(elapsed);
+	}
+
+	public function onMouseUp(character:Character){
+		if(character.choosing){
+			choosings.remove(character);
+		}else{
+			choosings.add(character);
+		}
+    character.choosing=(character.choosing)?false:true;
 	}
 }
