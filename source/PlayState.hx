@@ -42,10 +42,6 @@ class PlayState extends FlxState{
 
 	override public function create():Void{
 		super.create();
-    // HaxeFlixel組込み機能の使用記述
-    FlxG.debugger.visible = true;
-    FlxG.debugger.toggleKeys = ["ALT"];
-				
 		// 地形描画領域の定義
 		fieldArea=new FlxObject(0,0,FlxG.width,FlxG.height);
 		FlxMouseEventManager.add(fieldArea,function(field:FlxObject){
@@ -67,7 +63,7 @@ class PlayState extends FlxState{
 		selectedRange=new FlxSprite(0,0);
 		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
 		selectedRange.kill();
-
+	
 		// 下位レイヤから加える
 		add(characterPool);
 		add(fieldArea);
@@ -82,6 +78,7 @@ class PlayState extends FlxState{
 		}
 		if(FlxG.mouse.justPressedRight){
 			characterPool.forEachAlive(function(character){
+				choosings.remove(character);
 				character.choosing=false;
 			});			
 		}
@@ -96,6 +93,7 @@ class PlayState extends FlxState{
 		if(FlxG.mouse.justReleased){
 			characterPool.forEachAlive(function(character){
 				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
+					choosings.add(character);
 					character.choosing=true;
 				}
 			});

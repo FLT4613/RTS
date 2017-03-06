@@ -1,7 +1,11 @@
 package objects;
 import flixel.FlxSprite;
+using flixel.util.FlxSpriteUtil;
 import flixel.util.FlxPath;
 import flixel.math.FlxPoint;
+import flixel.math.FlxAngle;
+import objects.Direction;
+import objects.Motion;
 
 class Character extends FlxSprite{
 
@@ -10,10 +14,23 @@ class Character extends FlxSprite{
    */
   public var choosing:Bool=false;
 
+  /**
+   *  キャラクターの向き
+   */
+  public var direction:DirectionalVector;
+
+  /**
+   *  キャラクターの現在の行動
+   */
+  public var motion:Motion;
+
   override public function new(x:Float,y:Float):Void{
     super(x,y);
     path=new FlxPath();
+    direction=Direction.UP;
+    motion=Motion.STAY;
     makeGraphic(16, 16, 0xFFFFFFFF);
+    FlxSpriteUtil.drawTriangle(this,3,3,10,0xFF2222FF);
   }
 
   override public function update(elapsed:Float):Void{
@@ -22,6 +39,13 @@ class Character extends FlxSprite{
       this.color=0xFF0000;
     }else{
       this.color=0xFFFFFF;
+    }
+    switch(direction){
+      case UP:angle=0;
+      case RIGHT:angle=90;
+      case DOWN:angle=180;
+      case LEFT:angle=-90;
+      default: throw Std.string(direction);
     }
   }
 
@@ -32,7 +56,14 @@ class Character extends FlxSprite{
    */
   public function moveStart(dest:FlxPoint,?keepChoice:Bool=false){
     path.cancel();
-    if(!keepChoice)choosing=false;
+    switch(FlxAngle.angleBetweenPoint(this,dest,true)){
+      case value if(-45<=value && value<45): direction=RIGHT;
+      case value if(45<=value && value<=135): direction=DOWN;
+      case value if(-45>=value && value>=-135): direction=UP;
+      case value if(-135>value || value>135): direction=LEFT;
+      case _: throw FlxAngle.angleBetweenPoint(this,dest,true);
+    }
+    if(!keepChoice)choosing=false; 
     path.start([dest]);
   }
 
