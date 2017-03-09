@@ -3,6 +3,7 @@ package;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
+using flixel.util.FlxSpriteUtil;
 import flixel.FlxState;
 import flixel.text.FlxText;
 import flixel.ui.FlxButton;
@@ -33,7 +34,7 @@ class PlayState extends FlxState{
 	/**
 	 * 地形描画領域
 	 */
-	var fieldArea:FlxObject;
+	var fieldArea:FlxSprite;
 
 	/**
 	 * 選んでるキャラクター
@@ -42,9 +43,23 @@ class PlayState extends FlxState{
 
 	override public function create():Void{
 		super.create();
+		var gridSize=22;
+
 		// 地形描画領域の定義
-		fieldArea=new FlxObject(0,0,FlxG.width,FlxG.height);
-		FlxMouseEventManager.add(fieldArea,function(field:FlxObject){
+		fieldArea=new FlxSprite(0,0);
+		fieldArea.makeGraphic(FlxG.width,FlxG.height,0xFF000000);
+
+		// グリッド縦ライン
+		for(i in 0...Std.int(FlxG.width/gridSize)+1){
+			FlxSpriteUtil.drawLine(fieldArea,i*gridSize,0,i*gridSize,FlxG.height);
+		}
+		// グリッド横ライン
+		for(i in 0...Std.int(FlxG.height/gridSize)+1){
+			FlxSpriteUtil.drawLine(fieldArea,0,i*gridSize,FlxG.width,i*gridSize);
+		}
+
+
+		FlxMouseEventManager.add(fieldArea,function(field:FlxSprite){
 			choosings.forEachAlive(function(character){
 				if(character.choosing)character.moveStart(FlxG.mouse.getPosition(),(FlxG.keys.pressed.A)?true:false);
 			});
@@ -65,8 +80,8 @@ class PlayState extends FlxState{
 		selectedRange.kill();
 	
 		// 下位レイヤから加える
-		add(characterPool);
 		add(fieldArea);
+		add(characterPool);
 		add(selectedRange);
 	}
 
