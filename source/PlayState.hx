@@ -1,5 +1,7 @@
 package;
 
+using Lambda;
+
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
@@ -11,9 +13,8 @@ import flixel.math.FlxMath;
 import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
-
 import flixel.input.mouse.FlxMouseEventManager;
-import objects.Character;
+import objects.*;
 
 class PlayState extends FlxState{
 	/**
@@ -41,9 +42,13 @@ class PlayState extends FlxState{
 	 */
 	var choosings:FlxTypedGroup<Character>;
 
+	/**
+	 * 正方形グリッドの1辺の長さ
+	 */
+	public var gridSize(default,null)=22;
+
 	override public function create():Void{
 		super.create();
-		var gridSize=22;
 
 		// 地形描画領域の定義
 		fieldArea=new FlxSprite(0,0);
@@ -86,6 +91,7 @@ class PlayState extends FlxState{
 	}
 
 	override public function update(elapsed:Float):Void{
+		super.update(elapsed);
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
@@ -114,7 +120,30 @@ class PlayState extends FlxState{
 			});
 			selectedRange.kill();	
 		}
-		super.update(elapsed);
+	  var characterPositions=new Array<FlxPoint>();
+	  var overlappings=new FlxTypedGroup<Character>();
+		characterPool.forEachAlive(function(character:Character){
+			if(character.motion==Motion.STAY){
+				var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize));
+				if(characterPositions.exists(function(point:FlxPoint){
+					return point.equals(gridPos);
+				})){
+					overlappings.add(character);
+				}else{
+					characterPositions.push(gridPos);
+				}
+			}
+		});
+		overlappings.forEachAlive(function(character:Character){
+			var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize)).addPoint(character.direction.clockwise().clockwise().toVector());
+			if(!characterPositions.exists(function(point:FlxPoint){
+				return gridPos.equals(point);
+			})){
+				character.moveStart(gridPos.scale(gridSize),true);
+			}else{
+				character.moveStart(FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize)).addPoint(character.direction.toVector()).scale(gridSize),true);
+			}
+		});
 	}
 
 	public function onMouseUp(character:Character){

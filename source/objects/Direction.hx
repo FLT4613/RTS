@@ -41,15 +41,15 @@ abstract DirectionalVector(Direction) from Direction to Direction{
 
   @:to public function toVector():FlxPoint{
     return switch (this) {
-      case UP         : FlxPoint.weak(0,-1);
-      case UP_RIGHT   : FlxPoint.weak(1,-1);
-      case RIGHT      : FlxPoint.weak(1,0);
-      case DOWN_RIGHT : FlxPoint.weak(1,1);
-      case DOWN       : FlxPoint.weak(0,1);
-      case DOWN_LEFT  : FlxPoint.weak(-1,1);
-      case LEFT       : FlxPoint.weak(-1,0);
-      case UP_LEFT    : FlxPoint.weak(-1,-1);
-      case UNDEFINED  : FlxPoint.weak(0,0);
+      case UP         : FlxPoint.get(0,-1);
+      case UP_RIGHT   : FlxPoint.get(1,-1);
+      case RIGHT      : FlxPoint.get(1,0);
+      case DOWN_RIGHT : FlxPoint.get(1,1);
+      case DOWN       : FlxPoint.get(0,1);
+      case DOWN_LEFT  : FlxPoint.get(-1,1);
+      case LEFT       : FlxPoint.get(-1,0);
+      case UP_LEFT    : FlxPoint.get(-1,-1);
+      case UNDEFINED  : FlxPoint.get(0,0);
     }
   }
 

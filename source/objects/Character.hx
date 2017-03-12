@@ -63,7 +63,9 @@ class Character extends FlxSprite{
       case value if(-135>value || value>135): direction=LEFT;
       case _: throw FlxAngle.angleBetweenPoint(this,dest,true);
     }
-    if(!keepChoice)choosing=false; 
+    if(!keepChoice)choosing=false;
+    motion=Motion.MOVING;
+    path.onComplete=function(path:FlxPath){motion=Motion.STAY;};
     path.start([dest]);
   }
 
