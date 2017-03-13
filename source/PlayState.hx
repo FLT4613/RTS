@@ -135,14 +135,15 @@ class PlayState extends FlxState{
 			}
 		});
 		overlappings.forEachAlive(function(character:Character){
-			var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize)).addPoint(character.direction.clockwise().clockwise().toVector());
+			var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize));
 			if(!characterPositions.exists(function(point:FlxPoint){
-				return gridPos.equals(point);
+				return character.direction.clockwise().clockwise().toVector().addPoint(gridPos).equals(point);
 			})){
-				character.moveStart(gridPos.scale(gridSize),true);
+				gridPos.addPoint(character.direction.clockwise().clockwise().toVector());
 			}else{
-				character.moveStart(FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize)).addPoint(character.direction.toVector()).scale(gridSize),true);
+				gridPos.addPoint(character.direction.toVector());
 			}
+			character.moveStart(gridPos.scale(gridSize).subtract((gridSize/2),(gridSize/2)),true);
 		});
 	}
 
