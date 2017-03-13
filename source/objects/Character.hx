@@ -40,6 +40,18 @@ class Character extends FlxSprite{
     }else{
       this.color=0xFFFFFF;
     }
+    switch(motion){
+      case STAY:
+      case MOVING:
+        switch(path.angle){
+          case value if(-45<=value && value<45): direction=UP;
+          case value if(45<=value && value<=135): direction=RIGHT;
+          case value if(-45>=value && value>=-135): direction=LEFT;
+          case value if(-135>value || value>135): direction=DOWN;
+          case _: throw FlxAngle.angleBetweenPoint(this,path.head(),true);
+        }
+      case COMBAT:
+    }
     switch(direction){
       case UP:angle=0;
       case RIGHT:angle=90;
@@ -54,19 +66,12 @@ class Character extends FlxSprite{
    @param   dest 目的地 
    @param   keepChoice 選択状態を維持する(true) しない(false) 
    */
-  public function moveStart(dest:FlxPoint,?keepChoice:Bool=false){
+  public function moveStart(dest:Array<FlxPoint>,?keepChoice:Bool=false){
     path.cancel();
-    switch(FlxAngle.angleBetweenPoint(this,dest,true)){
-      case value if(-45<=value && value<45): direction=RIGHT;
-      case value if(45<=value && value<=135): direction=DOWN;
-      case value if(-45>=value && value>=-135): direction=UP;
-      case value if(-135>value || value>135): direction=LEFT;
-      case _: throw FlxAngle.angleBetweenPoint(this,dest,true);
-    }
     if(!keepChoice)choosing=false;
     motion=Motion.MOVING;
     path.onComplete=function(path:FlxPath){motion=Motion.STAY;};
-    path.start([dest]);
+    path.start(dest);
   }
 
 	public function onMouseOver(character:Character){

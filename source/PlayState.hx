@@ -13,6 +13,7 @@ import flixel.math.FlxMath;
 import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
+import flixel.tile.FlxTilemap;
 import flixel.input.mouse.FlxMouseEventManager;
 import objects.*;
 
@@ -45,14 +46,27 @@ class PlayState extends FlxState{
 	/**
 	 * 正方形グリッドの1辺の長さ
 	 */
-	public var gridSize(default,null)=22;
+	public var gridSize(default,null)=32;
+
+	/**
+	 * 地形 
+	 */
+	var field:FlxTilemap;
 
 	override public function create():Void{
 		super.create();
-
+		field=new FlxTilemap();
+		field.loadMapFromCSV(AssetPaths.map__csv,AssetPaths.tiles__png,32);
 		// 地形描画領域の定義
+		field.setTileProperties(0,FlxObject.ANY);
+		field.setTileProperties(1,FlxObject.ANY);
+		field.setTileProperties(2,FlxObject.NONE);
+		field.setTileProperties(3,FlxObject.NONE);
+		field.setTileProperties(4,FlxObject.ANY);
+		field.setTileProperties(5,FlxObject.ANY);
+
 		fieldArea=new FlxSprite(0,0);
-		fieldArea.makeGraphic(FlxG.width,FlxG.height,0xFF000000);
+		fieldArea.makeGraphic(FlxG.width,FlxG.height,0x00000000);
 
 		// グリッド縦ライン
 		for(i in 0...Std.int(FlxG.width/gridSize)+1){
@@ -63,12 +77,13 @@ class PlayState extends FlxState{
 			FlxSpriteUtil.drawLine(fieldArea,0,i*gridSize,FlxG.width,i*gridSize);
 		}
 
+		// FlxMouseEventManager.add(field,function(f:FlxObject){
+		// 	trace(field.getTile(tileCoordX,tileCoordY));
 
-		FlxMouseEventManager.add(fieldArea,function(field:FlxSprite){
-			choosings.forEachAlive(function(character){
-				if(character.choosing)character.moveStart(FlxG.mouse.getPosition(),(FlxG.keys.pressed.A)?true:false);
-			});
-		});
+		// 	choosings.forEachAlive(function(character){
+
+		// 	});
+		// });
 
 		// キャラクターオブジェクトプールの定義
 		characterPool=new FlxTypedGroup<Character>();
@@ -85,6 +100,7 @@ class PlayState extends FlxState{
 		selectedRange.kill();
 	
 		// 下位レイヤから加える
+		add(field);
 		add(fieldArea);
 		add(characterPool);
 		add(selectedRange);
@@ -93,10 +109,19 @@ class PlayState extends FlxState{
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
 		if(FlxG.mouse.justPressed){
+			var tileCoordX:Int = Math.floor(FlxG.mouse.x / gridSize);
+			var tileCoordY:Int = Math.floor(FlxG.mouse.y / gridSize);
+			characterPool.forEachAlive(function(character:Character){
+				if(character.choosing){
+					var path=field.findPath(character.getMidpoint(),FlxPoint.get(tileCoordX * gridSize + gridSize/2, tileCoordY * gridSize + gridSize/2));
+					character.moveStart(path,(FlxG.keys.pressed.A)?true:false);
+				}
+			});
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
 		}
+
 		if(FlxG.mouse.justPressedRight){
 			characterPool.forEachAlive(function(character){
 				choosings.remove(character);
@@ -134,6 +159,7 @@ class PlayState extends FlxState{
 				}
 			}
 		});
+		// 同時に同座標に停止時、重複を回避する動作
 		overlappings.forEachAlive(function(character:Character){
 			var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize));
 			if(!characterPositions.exists(function(point:FlxPoint){
@@ -143,7 +169,7 @@ class PlayState extends FlxState{
 			}else{
 				gridPos.addPoint(character.direction.toVector());
 			}
-			character.moveStart(gridPos.scale(gridSize).subtract((gridSize/2),(gridSize/2)),true);
+			character.moveStart([gridPos.scale(gridSize).subtract((gridSize/2),(gridSize/2))],true);
 		});
 	}
 
