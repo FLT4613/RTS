@@ -77,18 +77,10 @@ class PlayState extends FlxState{
 			FlxSpriteUtil.drawLine(fieldArea,0,i*gridSize,FlxG.width,i*gridSize);
 		}
 
-		// FlxMouseEventManager.add(field,function(f:FlxObject){
-		// 	trace(field.getTile(tileCoordX,tileCoordY));
-
-		// 	choosings.forEachAlive(function(character){
-
-		// 	});
-		// });
-
 		// キャラクターオブジェクトプールの定義
 		characterPool=new FlxTypedGroup<Character>();
 		for(i in 0...9){
-			var character=new Character(FlxG.random.int(50,FlxG.width-50),FlxG.random.int(50,FlxG.height-50));
+			var character=new Character(FlxG.random.int(50,FlxG.width-350),FlxG.random.int(50,FlxG.height-350));
 			characterPool.add(character);
 			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
@@ -109,14 +101,6 @@ class PlayState extends FlxState{
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
 		if(FlxG.mouse.justPressed){
-			var tileCoordX:Int = Math.floor(FlxG.mouse.x / gridSize);
-			var tileCoordY:Int = Math.floor(FlxG.mouse.y / gridSize);
-			characterPool.forEachAlive(function(character:Character){
-				if(character.choosing){
-					var path=field.findPath(character.getMidpoint(),FlxPoint.get(tileCoordX * gridSize + gridSize/2, tileCoordY * gridSize + gridSize/2));
-					character.moveStart(path,(FlxG.keys.pressed.A)?true:false);
-				}
-			});
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
@@ -136,8 +120,14 @@ class PlayState extends FlxState{
 				Std.int(Math.abs(FlxG.mouse.y-selectedRangeStartPos.y))
 			);
 		}
-		if(FlxG.mouse.justReleased){
+		if(FlxG.mouse.justReleased){			
+			var tileCoordX:Int = Math.floor(FlxG.mouse.x / gridSize);
+			var tileCoordY:Int = Math.floor(FlxG.mouse.y / gridSize);
 			characterPool.forEachAlive(function(character){
+				if(FlxG.swipes[0].distance==0 && character.choosing){
+					var path=field.findPath(character.getMidpoint(),FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
+					character.moveStart(path,(FlxG.keys.pressed.A)?true:false);
+				}
 				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
 					choosings.add(character);
 					character.choosing=true;
@@ -145,32 +135,48 @@ class PlayState extends FlxState{
 			});
 			selectedRange.kill();	
 		}
-	  var characterPositions=new Array<FlxPoint>();
-	  var overlappings=new FlxTypedGroup<Character>();
+	  var characterPositions=new Map<Int,Character>();
+		var overlappings=new Map<Int,Array<Character>>();
+
 		characterPool.forEachAlive(function(character:Character){
+			var index=field.getTileIndexByCoords(character.getMidpoint());
 			if(character.motion==Motion.STAY){
-				var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize));
-				if(characterPositions.exists(function(point:FlxPoint){
-					return point.equals(gridPos);
-				})){
-					overlappings.add(character);
+				if(characterPositions.exists(index)){
+					if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
+					overlappings.get(index).push(character);
 				}else{
-					characterPositions.push(gridPos);
+					characterPositions.set(index,character);
 				}
 			}
 		});
+
 		// 同時に同座標に停止時、重複を回避する動作
-		overlappings.forEachAlive(function(character:Character){
-			var gridPos=FlxPoint.get(Math.ceil(character.x/gridSize),Math.ceil(character.y/gridSize));
-			if(!characterPositions.exists(function(point:FlxPoint){
-				return character.direction.clockwise().clockwise().toVector().addPoint(gridPos).equals(point);
-			})){
-				gridPos.addPoint(character.direction.clockwise().clockwise().toVector());
-			}else{
-				gridPos.addPoint(character.direction.toVector());
+		for(overlapPoint in overlappings.keys()){
+			var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
+			var criteria=characterPositions.get(overlapPoint).direction;
+			var passable=new Array<Int>();
+			for(direction in [criteria.clockwise().clockwise(),criteria,criteria.antiClockwise().antiClockwise(),criteria.reverse()]){
+				var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
+				if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
+					passable.push(checkingPoint);
+				}
 			}
-			character.moveStart([gridPos.scale(gridSize).subtract((gridSize/2),(gridSize/2))],true);
-		});
+			if(passable.empty()){
+				continue;
+			}
+			// 4方のうち(1)移動できる方向かつ(2)キャラのいない方向
+			//  ->(1)(2)の探し方は"最も下のキャラ(すなわち、待機できたキャラ)の向きを基準とした"右向きから前、左、後
+			// b) いずれにも該当しない場合(移動できる範囲全てにキャラがいる)、そのキャラ自身の向きを基準とした右手法に従う
+			var route=passable.find(function(index:Int){
+				return !characterPositions.exists(index);
+			});
+			overlappings.get(overlapPoint).iter(function(character:Character){
+				character.moveStart(
+					field.findPath(character.getMidpoint(),
+					field.getTileCoordsByIndex((route!=null)?route:passable[0],true)),
+					true);
+			});
+		}
 	}
 
 	public function onMouseUp(character:Character){
