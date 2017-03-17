@@ -7,6 +7,7 @@ import flixel.FlxObject;
 import flixel.FlxSprite;
 using flixel.util.FlxSpriteUtil;
 import flixel.FlxState;
+import flixel.util.FlxColor;
 import flixel.text.FlxText;
 import flixel.ui.FlxButton;
 import flixel.math.FlxMath;
@@ -82,14 +83,21 @@ class PlayState extends FlxState{
 			FlxSpriteUtil.drawLine(fieldArea,0,i*gridSize,FlxG.width,i*gridSize);
 		}
 	
-		// キャラクターオブジェクトプールの定義
+		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
 		for(i in 0...4){
-			var character=new Character(FlxG.random.int(50,FlxG.width-350),FlxG.random.int(50,FlxG.height-350),0xFF2222FF);
+			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,FlxColor.BLUE);
 			friendsSide.add(character);
 			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
 		choosings=new FlxTypedGroup<Character>();
+
+		// 敵キャラクターの定義
+		enemiesSide=new FlxTypedGroup<Character>();
+		for(i in 0...4){
+			var character=new Character(field.getTileCoordsByIndex(38,true).x,field.getTileCoordsByIndex(38,true).y,FlxColor.RED);
+			enemiesSide.add(character);
+		}
 
 		// 地形描画領域の定義
 		selectedRange=new FlxSprite(0,0);
@@ -100,11 +108,16 @@ class PlayState extends FlxState{
 		add(field);
 		add(fieldArea);
 		add(friendsSide);
+		add(enemiesSide);
 		add(selectedRange);
+
+		FlxG.debugger.toggleKeys=["Q"];
 	}
 
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
+		FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
+		FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
@@ -141,6 +154,7 @@ class PlayState extends FlxState{
 			selectedRange.kill();	
 		}
 		breakOverlapping(friendsSide);
+		breakOverlapping(enemiesSide);
 	}
 
 	public function onMouseUp(character:Character){

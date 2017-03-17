@@ -26,11 +26,12 @@ class Character extends FlxSprite{
   public var motion:Motion;
 
   override public function new(x:Float,y:Float,color:FlxColor):Void{
-    super(x,y);
+    super();
     path=new FlxPath();
     direction=Direction.UP;
     motion=Motion.STAY;
-    makeGraphic(16, 16, 0xFFFFFFFF);
+    makeGraphic(16, 16, 0xFFFFFFFF,true);
+    setPosition(x-width/2,y-height/2);
     FlxSpriteUtil.drawTriangle(this,3,3,10,color);
   }
 
