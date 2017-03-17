@@ -2,6 +2,7 @@ package objects;
 import flixel.FlxSprite;
 using flixel.util.FlxSpriteUtil;
 import flixel.util.FlxPath;
+import flixel.util.FlxColor;
 import flixel.math.FlxPoint;
 import flixel.math.FlxAngle;
 import objects.Direction;
@@ -24,13 +25,13 @@ class Character extends FlxSprite{
    */
   public var motion:Motion;
 
-  override public function new(x:Float,y:Float):Void{
+  override public function new(x:Float,y:Float,color:FlxColor):Void{
     super(x,y);
     path=new FlxPath();
     direction=Direction.UP;
     motion=Motion.STAY;
     makeGraphic(16, 16, 0xFFFFFFFF);
-    FlxSpriteUtil.drawTriangle(this,3,3,10,0xFF2222FF);
+    FlxSpriteUtil.drawTriangle(this,3,3,10,color);
   }
 
   override public function update(elapsed:Float):Void{

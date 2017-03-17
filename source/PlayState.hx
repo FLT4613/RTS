@@ -19,9 +19,14 @@ import objects.*;
 
 class PlayState extends FlxState{
 	/**
-	 * キャラクターのオブジェクトプール
+	 * 味方キャラクターのオブジェクトプール
 	 */
 	var friendsSide:FlxTypedGroup<Character>;
+
+	/**
+	 * 敵キャラクターのオブジェクトプール
+	 */
+	var enemiesSide:FlxTypedGroup<Character>;
 
 	/**
 	 * 選択範囲の矩形
@@ -76,11 +81,11 @@ class PlayState extends FlxState{
 		for(i in 0...Std.int(FlxG.height/gridSize)+1){
 			FlxSpriteUtil.drawLine(fieldArea,0,i*gridSize,FlxG.width,i*gridSize);
 		}
-
+	
 		// キャラクターオブジェクトプールの定義
 		friendsSide=new FlxTypedGroup<Character>();
-		for(i in 0...9){
-			var character=new Character(FlxG.random.int(50,FlxG.width-350),FlxG.random.int(50,FlxG.height-350));
+		for(i in 0...4){
+			var character=new Character(FlxG.random.int(50,FlxG.width-350),FlxG.random.int(50,FlxG.height-350),0xFF2222FF);
 			friendsSide.add(character);
 			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
