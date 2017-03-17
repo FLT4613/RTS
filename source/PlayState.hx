@@ -21,7 +21,7 @@ class PlayState extends FlxState{
 	/**
 	 * キャラクターのオブジェクトプール
 	 */
-	var characterPool:FlxTypedGroup<Character>;
+	var friendsSide:FlxTypedGroup<Character>;
 
 	/**
 	 * 選択範囲の矩形
@@ -78,10 +78,10 @@ class PlayState extends FlxState{
 		}
 
 		// キャラクターオブジェクトプールの定義
-		characterPool=new FlxTypedGroup<Character>();
+		friendsSide=new FlxTypedGroup<Character>();
 		for(i in 0...9){
 			var character=new Character(FlxG.random.int(50,FlxG.width-350),FlxG.random.int(50,FlxG.height-350));
-			characterPool.add(character);
+			friendsSide.add(character);
 			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
 		choosings=new FlxTypedGroup<Character>();
@@ -94,7 +94,7 @@ class PlayState extends FlxState{
 		// 下位レイヤから加える
 		add(field);
 		add(fieldArea);
-		add(characterPool);
+		add(friendsSide);
 		add(selectedRange);
 	}
 
@@ -107,7 +107,7 @@ class PlayState extends FlxState{
 		}
 
 		if(FlxG.mouse.justPressedRight){
-			characterPool.forEachAlive(function(character){
+			friendsSide.forEachAlive(function(character){
 				choosings.remove(character);
 				character.choosing=false;
 			});			
@@ -123,7 +123,7 @@ class PlayState extends FlxState{
 		if(FlxG.mouse.justReleased){			
 			var tileCoordX:Int = Math.floor(FlxG.mouse.x / gridSize);
 			var tileCoordY:Int = Math.floor(FlxG.mouse.y / gridSize);
-			characterPool.forEachAlive(function(character){
+			friendsSide.forEachAlive(function(character){
 				if(FlxG.swipes[0].distance==0 && character.choosing){
 					var path=field.findPath(character.getMidpoint(),FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
 					character.moveStart(path,(FlxG.keys.pressed.A)?true:false);
@@ -135,6 +135,19 @@ class PlayState extends FlxState{
 			});
 			selectedRange.kill();	
 		}
+		breakOverlapping(friendsSide);
+	}
+
+	public function onMouseUp(character:Character){
+		if(character.choosing){
+			choosings.remove(character);
+		}else{
+			choosings.add(character);
+		}
+    character.choosing=(character.choosing)?false:true;
+	}
+
+	public function breakOverlapping(characterPool:FlxTypedGroup<Character>){
 	  var characterPositions=new Map<Int,Character>();
 		var overlappings=new Map<Int,Array<Character>>();
 
@@ -183,14 +196,5 @@ class PlayState extends FlxState{
 					true);
 			});
 		}
-	}
-
-	public function onMouseUp(character:Character){
-		if(character.choosing){
-			choosings.remove(character);
-		}else{
-			choosings.add(character);
-		}
-    character.choosing=(character.choosing)?false:true;
 	}
 }
