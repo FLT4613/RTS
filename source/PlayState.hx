@@ -150,7 +150,6 @@ class PlayState extends FlxState{
 			}
 		});
 
-		// 同時に同座標に停止時、重複を回避する動作
 		for(overlapPoint in overlappings.keys()){
 			var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
 			var criteria=characterPositions.get(overlapPoint).direction;
@@ -164,9 +163,6 @@ class PlayState extends FlxState{
 			if(passableIndexes.empty()){
 				continue;
 			}
-			// 4方のうち(1)移動できる方向かつ(2)キャラのいない方向
-			//  ->(1)(2)の探し方は"最も下のキャラ(すなわち、待機できたキャラ)の向きを基準とした"右向きから前、左、後
-			// b) いずれにも該当しない場合(移動できる範囲全てにキャラがいる)、そのキャラ自身の向きを基準とした右手法に従う
 			var route=passableIndexes.find(function(index:Int){
 				return !characterPositions.exists(index);
 			});
