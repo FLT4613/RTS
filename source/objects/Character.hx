@@ -25,9 +25,15 @@ class Character extends FlxSprite{
    */
   public var motion:Motion;
 
+  /**
+   *  攻撃開始範囲の半径
+   */
+  public var chasingRange:Int;
+
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
     path=new FlxPath();
+    chasingRange=120;
     direction=Direction.UP;
     motion=Motion.STAY;
     makeGraphic(16, 16, 0xFFFFFFFF,true);
@@ -61,6 +67,7 @@ class Character extends FlxSprite{
       case LEFT:angle=-90;
       default: throw Std.string(direction);
     }
+    
   }
 
   /**

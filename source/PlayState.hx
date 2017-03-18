@@ -8,9 +8,6 @@ import flixel.FlxSprite;
 using flixel.util.FlxSpriteUtil;
 import flixel.FlxState;
 import flixel.util.FlxColor;
-import flixel.text.FlxText;
-import flixel.ui.FlxButton;
-import flixel.math.FlxMath;
 import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
@@ -40,9 +37,14 @@ class PlayState extends FlxState{
 	var selectedRangeStartPos:FlxPoint;
 
 	/**
-	 * 地形描画領域
+	 * グリッド描画領域
 	 */
-	var fieldArea:FlxSprite;
+	var grid:FlxSprite;
+
+	/**
+	 * 範囲の描画領域
+	 */
+	var ranges:FlxSprite;
 
 	/**
 	 * 選んでるキャラクター
@@ -71,16 +73,19 @@ class PlayState extends FlxState{
 		field.setTileProperties(4,FlxObject.ANY);
 		field.setTileProperties(5,FlxObject.ANY);
 
-		fieldArea=new FlxSprite(0,0);
-		fieldArea.makeGraphic(FlxG.width,FlxG.height,0x00000000);
+		grid=new FlxSprite(0,0);
+		grid.makeGraphic(FlxG.width,FlxG.height,0x00000000,true);
+
+		ranges=new FlxSprite(0,0);
+		ranges.makeGraphic(FlxG.width,FlxG.height,0x00000000,true);
 
 		// グリッド縦ライン
 		for(i in 0...Std.int(FlxG.width/gridSize)+1){
-			FlxSpriteUtil.drawLine(fieldArea,i*gridSize,0,i*gridSize,FlxG.height);
+			FlxSpriteUtil.drawLine(grid,i*gridSize,0,i*gridSize,FlxG.height);
 		}
 		// グリッド横ライン
 		for(i in 0...Std.int(FlxG.height/gridSize)+1){
-			FlxSpriteUtil.drawLine(fieldArea,0,i*gridSize,FlxG.width,i*gridSize);
+			FlxSpriteUtil.drawLine(grid,0,i*gridSize,FlxG.width,i*gridSize);
 		}
 	
 		// 味方キャラクターの定義
@@ -106,7 +111,8 @@ class PlayState extends FlxState{
 	
 		// 下位レイヤから加える
 		add(field);
-		add(fieldArea);
+		add(grid);
+		add(ranges);
 		add(friendsSide);
 		add(enemiesSide);
 		add(selectedRange);
@@ -116,6 +122,17 @@ class PlayState extends FlxState{
 
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
+		FlxSpriteUtil.fill(ranges, 0x00000000);
+		if(FlxG.debugger.visible==true){
+			friendsSide.forEachAlive(function(character:Character){
+				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x55FF0000);
+			});
+
+			enemiesSide.forEachAlive(function(character:Character){
+				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
+			});
+		}
+
 		FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
 		FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		if(FlxG.mouse.justPressed){
