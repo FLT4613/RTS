@@ -170,8 +170,8 @@ class PlayState extends FlxState{
 			});
 			selectedRange.kill();	
 		}
-		breakOverlapping(friendsSide);
-		breakOverlapping(enemiesSide);
+		charactersCommonSequence(friendsSide);
+		charactersCommonSequence(enemiesSide);
 	}
 
 	public function onMouseUp(character:Character){
@@ -183,7 +183,7 @@ class PlayState extends FlxState{
     character.choosing=(character.choosing)?false:true;
 	}
 
-	public function breakOverlapping(characterPool:FlxTypedGroup<Character>){
+	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
 	  var characterPositions=new Map<Int,Character>();
 		var overlappings=new Map<Int,Array<Character>>();
 
