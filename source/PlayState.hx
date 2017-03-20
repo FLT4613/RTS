@@ -5,6 +5,7 @@ using Lambda;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
+import flixel.group.FlxSpriteGroup;
 using flixel.util.FlxSpriteUtil;
 import flixel.FlxState;
 import flixel.util.FlxColor;
@@ -61,6 +62,11 @@ class PlayState extends FlxState{
 	 */
 	var field:FlxTilemap;
 
+	/**
+	 * 当たり判定
+	 */
+	var collisions:FlxTypedGroup<Collision>;
+
 	override public function create():Void{
 		super.create();
 		field=new FlxTilemap();
@@ -87,7 +93,7 @@ class PlayState extends FlxState{
 		for(i in 0...Std.int(FlxG.height/gridSize)+1){
 			FlxSpriteUtil.drawLine(grid,0,i*gridSize,FlxG.width,i*gridSize);
 		}
-	
+		
 		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
 		for(i in 0...4){
@@ -104,6 +110,8 @@ class PlayState extends FlxState{
 			enemiesSide.add(character);
 		}
 
+		collisions=new FlxTypedGroup<Collision>();
+
 		// 地形描画領域の定義
 		selectedRange=new FlxSprite(0,0);
 		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
@@ -115,6 +123,7 @@ class PlayState extends FlxState{
 		add(ranges);
 		add(friendsSide);
 		add(enemiesSide);
+		add(collisions);
 		add(selectedRange);
 
 		FlxG.debugger.toggleKeys=["Q"];
@@ -139,6 +148,10 @@ class PlayState extends FlxState{
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
+			var collision=collisions.recycle(Collision,Collision.new);
+			collision.configure(FlxG.mouse.x,FlxG.mouse.y,function(character:FlxSprite){
+				trace("hoge");
+			},objects.Collision.ColliderType.ONCE);
 		}
 
 		if(FlxG.mouse.justPressedRight){
@@ -186,7 +199,10 @@ class PlayState extends FlxState{
 	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
 	  var characterPositions=new Map<Int,Character>();
 		var overlappings=new Map<Int,Array<Character>>();
-
+	
+		FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
+			collision.onHitCallback(character);
+		});
 		characterPool.forEachAlive(function(character:Character){
 			var index=field.getTileIndexByCoords(character.getMidpoint());
 			if(character.motion==Motion.STAY){

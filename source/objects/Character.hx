@@ -5,6 +5,7 @@ import flixel.util.FlxPath;
 import flixel.util.FlxColor;
 import flixel.math.FlxPoint;
 import flixel.math.FlxAngle;
+import flixel.util.FlxTimer;
 import objects.Direction;
 import objects.Motion;
 
@@ -29,6 +30,11 @@ class Character extends FlxSprite{
    *  攻撃開始範囲の半径
    */
   public var chasingRange:Int;
+
+  /**
+   *  攻撃間隔
+   */
+  public var attackInterval:FlxTimer;
 
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
