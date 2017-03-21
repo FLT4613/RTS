@@ -32,6 +32,15 @@ class Character extends FlxSprite{
   public var chasingRange:Int;
 
   /**
+   *  攻撃範囲
+   */
+  public var attackRange:Int;
+
+  /**
+   *  攻撃範囲に補足しているキャラクター
+   */
+  public var attackTarget:Array<Character>;
+  /**
    *  攻撃間隔
    */
   public var attackInterval:FlxTimer;
@@ -49,6 +58,7 @@ class Character extends FlxSprite{
 
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
+    attackTarget=[];
     if(choosing){
       this.color=0xFF0000;
     }else{

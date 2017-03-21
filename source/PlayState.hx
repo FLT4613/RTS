@@ -9,6 +9,7 @@ import flixel.group.FlxSpriteGroup;
 using flixel.util.FlxSpriteUtil;
 import flixel.FlxState;
 import flixel.util.FlxColor;
+import flixel.math.FlxMath;
 import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
@@ -133,11 +134,10 @@ class PlayState extends FlxState{
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
 		FlxSpriteUtil.fill(ranges, 0x00000000);
-		if(FlxG.debugger.visible==true){
+		if(FlxG.debugger.visible){
 			friendsSide.forEachAlive(function(character:Character){
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x55FF0000);
 			});
-
 			enemiesSide.forEachAlive(function(character:Character){
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
 			});
@@ -145,6 +145,7 @@ class PlayState extends FlxState{
 		
 		FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
 		FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
+		
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
@@ -186,6 +187,16 @@ class PlayState extends FlxState{
 		}
 		charactersCommonSequence(friendsSide);
 		charactersCommonSequence(enemiesSide);
+
+		friendsSide.forEachAlive(function(friend:Character){
+			enemiesSide.forEachAlive(function(enemy:Character){
+				FlxG.collide(friend,enemy);
+				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
+					// friend.moveStart(field.findPath(friend.getMidpoint(),enemy.getMidpoint()));
+					friend.attackTarget.push(enemy);
+				}
+			});
+		});
 	}
 
 	public function onMouseUp(character:Character){
