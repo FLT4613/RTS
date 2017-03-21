@@ -24,7 +24,7 @@ class Collision extends FlxSprite{
   /**
    *  ヒット時の処理
    */
-  var callback:FlxSprite->Void;
+  var callback:Character->Void;
 
   /**
    *  当たり判定の種類
@@ -57,8 +57,8 @@ class Collision extends FlxSprite{
     super.update(elapsed);
   }
 
-  public function configure(x:Float,y:Float,onHit:FlxSprite->Void,?type:ColliderType,?time:Float=1){
-    setPosition(x-width/2,y-height/2);
+  public function configure(x:Float,y:Float,onHit:Character->Void,?type:ColliderType,?time:Float=1){
+    reset(x-width/2,y-height/2);
     callback=onHit;
     colliderType=type;
     livingTimer.start(time,function(timer:FlxTimer){
@@ -67,7 +67,7 @@ class Collision extends FlxSprite{
     });
   }
 
-  public function onHitCallback(target:FlxSprite){
+  public function onHitCallback(target:Character){
     callback(target);
     this.kill();
   }

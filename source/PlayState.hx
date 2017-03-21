@@ -127,6 +127,7 @@ class PlayState extends FlxState{
 		add(selectedRange);
 
 		FlxG.debugger.toggleKeys=["Q"];
+		FlxG.debugger.drawDebug=true;
 	}
 
 	override public function update(elapsed:Float):Void{
@@ -141,7 +142,7 @@ class PlayState extends FlxState{
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
 			});
 		}
-
+		
 		FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
 		FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		if(FlxG.mouse.justPressed){
@@ -149,8 +150,8 @@ class PlayState extends FlxState{
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
 			var collision=collisions.recycle(Collision,Collision.new);
-			collision.configure(FlxG.mouse.x,FlxG.mouse.y,function(character:FlxSprite){
-				trace("hoge");
+			collision.configure(FlxG.mouse.x,FlxG.mouse.y,function(character:Character){
+				FlxSpriteUtil.flicker(character,2);
 			},objects.Collision.ColliderType.ONCE);
 		}
 
