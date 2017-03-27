@@ -40,6 +40,7 @@ class Character extends FlxSprite{
    *  攻撃範囲に補足しているキャラクター
    */
   public var attackTarget:Array<Character>;
+
   /**
    *  攻撃間隔
    */

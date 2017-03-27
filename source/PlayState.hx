@@ -195,6 +195,10 @@ class PlayState extends FlxState{
 					// friend.moveStart(field.findPath(friend.getMidpoint(),enemy.getMidpoint()));
 					friend.attackTarget.push(enemy);
 				}
+				if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
+					// friend.moveStart(field.findPath(friend.getMidpoint(),enemy.getMidpoint()));
+					enemy.attackTarget.push(friend);
+				}
 			});
 		});
 	}
