@@ -68,6 +68,7 @@ class Character extends FlxSprite{
       var target=getAttackableTarget();
       if(target!=null){
         path.cancel();
+        stareAtPoint(target.getMidpoint());
       }
       attackTarget=[];
     }
