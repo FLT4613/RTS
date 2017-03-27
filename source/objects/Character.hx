@@ -4,9 +4,7 @@ using flixel.util.FlxSpriteUtil;
 using Lambda;
 import flixel.util.FlxPath;
 import flixel.util.FlxColor;
-import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
-import flixel.math.FlxAngle;
 import flixel.util.FlxTimer;
 import objects.Direction;
 import objects.Motion;
@@ -52,11 +50,12 @@ class Character extends FlxSprite{
     path=new FlxPath();
     attackTarget=new Array();
     chasingRange=120;
-    attackRange=30;
+    attackRange=25;
     direction=Direction.UP;
     motion=Motion.STAY;
     makeGraphic(16, 16, 0xFFFFFFFF,true);
     setPosition(x-width/2,y-height/2);
+    attackInterval=new FlxTimer();
     FlxSpriteUtil.drawTriangle(this,3,3,10,color);
   }
 
@@ -67,8 +66,20 @@ class Character extends FlxSprite{
     if(!attackTarget.empty()){
       var target=getAttackableTarget();
       if(target!=null){
-        path.cancel();
+        motion=COMBAT;
+        // path.cancel();
         stareAtPoint(target.getMidpoint());
+        if(!attackInterval.active)
+        attackInterval.start(3,function(a){
+           PlayState.makeCollision().configure(
+            target.getMidpoint().x,
+            target.getMidpoint().y,
+            function(character:Character){
+              FlxSpriteUtil.flicker(character,2);
+            },objects.Collision.ColliderType.ONCE);
+        });
+      }else{
+        attackInterval.cancel();
       }
       attackTarget=[];
     }

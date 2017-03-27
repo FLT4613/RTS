@@ -66,7 +66,7 @@ class PlayState extends FlxState{
 	/**
 	 * 当たり判定
 	 */
-	var collisions:FlxTypedGroup<Collision>;
+	private static var collisions:FlxTypedGroup<Collision>;
 
 	override public function create():Void{
 		super.create();
@@ -107,7 +107,7 @@ class PlayState extends FlxState{
 		// 敵キャラクターの定義
 		enemiesSide=new FlxTypedGroup<Character>();
 		for(i in 0...3){
-			var character=new Character(field.getTileCoordsByIndex(38,true).x,field.getTileCoordsByIndex(38,true).y,FlxColor.RED);
+			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,FlxColor.RED);
 			enemiesSide.add(character);
 		}
 
@@ -151,10 +151,6 @@ class PlayState extends FlxState{
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
-			var collision=collisions.recycle(Collision,Collision.new);
-			collision.configure(FlxG.mouse.x,FlxG.mouse.y,function(character:Character){
-				FlxSpriteUtil.flicker(character,2);
-			},objects.Collision.ColliderType.ONCE);
 		}
 
 		if(FlxG.mouse.justPressedRight){
@@ -191,7 +187,10 @@ class PlayState extends FlxState{
 
 		friendsSide.forEachAlive(function(friend:Character){
 			enemiesSide.forEachAlive(function(enemy:Character){
-				FlxG.collide(friend,enemy);
+				FlxG.collide(friend,enemy,function(a,b){
+					a.path.cancel();
+					b.path.cancel();
+				});
 				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
 					// friend.moveStart(field.findPath(friend.getMidpoint(),enemy.getMidpoint()));
 					friend.attackTarget.push(enemy);
@@ -261,5 +260,9 @@ class PlayState extends FlxState{
 					true);
 			});
 		}
+	}
+
+	public static function makeCollision():Collision{
+		return collisions.recycle(Collision,Collision.new);
 	}
 }
