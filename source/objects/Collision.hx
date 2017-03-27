@@ -1,7 +1,5 @@
 package objects;
 import flixel.FlxSprite;
-import flixel.math.FlxPoint;
-import flixel.math.FlxAngle;
 import flixel.util.FlxTimer;
 
 /**
