@@ -97,7 +97,7 @@ class PlayState extends FlxState{
 		
 		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
-		for(i in 0...4){
+		for(i in 0...1){
 			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,FlxColor.BLUE);
 			friendsSide.add(character);
 			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
@@ -106,7 +106,7 @@ class PlayState extends FlxState{
 
 		// 敵キャラクターの定義
 		enemiesSide=new FlxTypedGroup<Character>();
-		for(i in 0...4){
+		for(i in 0...3){
 			var character=new Character(field.getTileCoordsByIndex(38,true).x,field.getTileCoordsByIndex(38,true).y,FlxColor.RED);
 			enemiesSide.add(character);
 		}
@@ -136,7 +136,8 @@ class PlayState extends FlxState{
 		FlxSpriteUtil.fill(ranges, 0x00000000);
 		if(FlxG.debugger.visible){
 			friendsSide.forEachAlive(function(character:Character){
-				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x55FF0000);
+				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x33FF0000);
+				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.attackRange,0x33FF0000);
 			});
 			enemiesSide.forEachAlive(function(character:Character){
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);

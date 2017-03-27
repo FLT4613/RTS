@@ -1,8 +1,10 @@
 package objects;
 import flixel.FlxSprite;
 using flixel.util.FlxSpriteUtil;
+using Lambda;
 import flixel.util.FlxPath;
 import flixel.util.FlxColor;
+import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 import flixel.math.FlxAngle;
 import flixel.util.FlxTimer;
@@ -48,7 +50,9 @@ class Character extends FlxSprite{
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
     path=new FlxPath();
+    attackTarget=new Array();
     chasingRange=120;
+    attackRange=30;
     direction=Direction.UP;
     motion=Motion.STAY;
     makeGraphic(16, 16, 0xFFFFFFFF,true);
@@ -58,7 +62,15 @@ class Character extends FlxSprite{
 
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
-    attackTarget=[];
+
+    // isAttackable : 攻撃可能な範囲にいるか？->COMBAT/MOVING継続
+    if(!attackTarget.empty()){
+      var target=getAttackableTarget();
+      if(target!=null){
+        path.cancel();
+      }
+      attackTarget=[];
+    }
     if(choosing){
       this.color=0xFF0000;
     }else{
@@ -67,13 +79,7 @@ class Character extends FlxSprite{
     switch(motion){
       case STAY:
       case MOVING:
-        switch(path.angle){
-          case value if(-45<=value && value<45): direction=UP;
-          case value if(45<=value && value<=135): direction=RIGHT;
-          case value if(-45>=value && value>=-135): direction=LEFT;
-          case value if(-135>value || value>135): direction=DOWN;
-          case _: throw FlxAngle.angleBetweenPoint(this,path.head(),true);
-        }
+        stareAtPoint(path.nodes[path.nodeIndex]);
       case COMBAT:
     }
     switch(direction){
@@ -83,7 +89,6 @@ class Character extends FlxSprite{
       case LEFT:angle=-90;
       default: throw Std.string(direction);
     }
-    
   }
 
   /**
@@ -106,4 +111,41 @@ class Character extends FlxSprite{
 	public function onMouseOut(character:Character){
 		character.setGraphicSize(Std.int(character.width),Std.int(character.height));
 	}
+
+  /**
+   * 攻撃が届く範囲にいるキャラクターのうち、最も近いものを返す
+   * @return  攻撃が届く`Character` または `null`
+   */
+  public function getAttackableTarget():Character{    
+    var min:Character=null;
+    for(character in attackTarget.filter(function(a){
+      return getMidpoint().distanceTo(a.getMidpoint())<attackRange;
+      })){
+      if(min==null){
+        min=character;
+        continue;
+      }
+      if(getMidpoint().distanceTo(character.getMidpoint())<getMidpoint().distanceTo(min.getMidpoint()))min=character;
+    }
+    return min;
+  }
+
+  /**
+   * フィールドマップ上のある一点に相対するよう向きを変える
+   * 
+   * ただし、その点と重なっている場合は、方向を変えない
+   * @param point 目標座標
+   * @return 向いた方向
+   */
+  public function stareAtPoint(point:FlxPoint):Direction{
+    if(!getMidpoint().equals(point)){
+      switch(getMidpoint().angleBetween(point)){
+        case value if(-45<=value && value<45): direction=UP;
+        case value if(45<=value && value<=135): direction=RIGHT;
+        case value if(-45>=value && value>=-135): direction=LEFT;
+        case value if(-135>value || value>135): direction=DOWN;
+      }
+    }
+    return direction;
+  }
 }
