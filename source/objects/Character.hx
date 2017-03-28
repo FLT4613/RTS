@@ -58,17 +58,17 @@ class Character extends FlxSprite{
     setPosition(x-width/2,y-height/2);
     attackInterval=new FlxTimer();
     FlxSpriteUtil.drawTriangle(this,3,3,10,color);
+    setSize(5,5);
+    updateHitbox();
   }
 
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
-
-    // isAttackable : 攻撃可能な範囲にいるか？->COMBAT/MOVING継続
     if(!attackTarget.empty()){
       var target=getAttackableTarget();
       if(target!=null){
         motion=COMBAT;
-        // path.cancel();
+        path.cancel();
         stareAtPoint(target.getMidpoint());
         if(!attackInterval.active)
         attackInterval.start(3,function(a){
@@ -81,6 +81,7 @@ class Character extends FlxSprite{
         });
       }else{
         attackInterval.cancel();
+				moveStart(PlayState.field.findPath(getMidpoint(),attackTarget[0].getMidpoint()));
       }
       attackTarget=[];
     }

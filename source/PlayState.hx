@@ -61,7 +61,7 @@ class PlayState extends FlxState{
 	/**
 	 * 地形 
 	 */
-	var field:FlxTilemap;
+	public static var field:FlxTilemap;
 
 	/**
 	 * 当たり判定
@@ -187,16 +187,14 @@ class PlayState extends FlxState{
 
 		friendsSide.forEachAlive(function(friend:Character){
 			enemiesSide.forEachAlive(function(enemy:Character){
-				FlxG.collide(friend,enemy,function(a,b){
-					a.path.cancel();
-					b.path.cancel();
-				});
+				// FlxG.overlap(friend,enemy,function(a:Character,b:Character){
+				// 	a.path.cancel();
+				// 	b.path.cancel();
+				// });
 				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
-					// friend.moveStart(field.findPath(friend.getMidpoint(),enemy.getMidpoint()));
 					friend.attackTarget.push(enemy);
 				}
 				if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
-					// friend.moveStart(field.findPath(friend.getMidpoint(),enemy.getMidpoint()));
 					enemy.attackTarget.push(friend);
 				}
 			});
