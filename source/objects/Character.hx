@@ -58,12 +58,12 @@ class Character extends FlxSprite{
     setPosition(x-width/2,y-height/2);
     attackInterval=new FlxTimer();
     FlxSpriteUtil.drawTriangle(this,3,3,10,color);
-    setSize(5,5);
-    updateHitbox();
+    health=10;
   }
 
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
+    if(health<1)kill();
     if(!attackTarget.empty()){
       var target=getAttackableTarget();
       if(target!=null){
@@ -76,12 +76,13 @@ class Character extends FlxSprite{
             target.getMidpoint().x,
             target.getMidpoint().y,
             function(character:Character){
-              FlxSpriteUtil.flicker(character,2);
+              FlxSpriteUtil.flicker(character,0.5);
             },objects.Collision.ColliderType.ONCE);
+            target.health-=1;
         });
       }else{
-        attackInterval.cancel();
 				moveStart(PlayState.field.findPath(getMidpoint(),attackTarget[0].getMidpoint()));
+        attackInterval.cancel();
       }
       attackTarget=[];
     }

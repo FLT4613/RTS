@@ -187,10 +187,6 @@ class PlayState extends FlxState{
 
 		friendsSide.forEachAlive(function(friend:Character){
 			enemiesSide.forEachAlive(function(enemy:Character){
-				// FlxG.overlap(friend,enemy,function(a:Character,b:Character){
-				// 	a.path.cancel();
-				// 	b.path.cancel();
-				// });
 				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
 					friend.attackTarget.push(enemy);
 				}
