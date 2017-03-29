@@ -97,7 +97,7 @@ class PlayState extends FlxState{
 		
 		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
-		for(i in 0...1){
+		for(i in 0...6){
 			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,FlxColor.BLUE);
 			friendsSide.add(character);
 			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
@@ -106,7 +106,7 @@ class PlayState extends FlxState{
 
 		// 敵キャラクターの定義
 		enemiesSide=new FlxTypedGroup<Character>();
-		for(i in 0...3){
+		for(i in 0...1){
 			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,FlxColor.RED);
 			enemiesSide.add(character);
 		}

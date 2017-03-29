@@ -1,4 +1,5 @@
 package objects;
+import flixel.FlxG;
 import flixel.FlxSprite;
 using flixel.util.FlxSpriteUtil;
 using Lambda;
@@ -46,6 +47,12 @@ class Character extends FlxSprite{
    */
   public var attackInterval:FlxTimer;
 
+  /**
+   *  戦闘態勢ならtrue
+   *  
+   */
+  public var fightReadiness:Bool;
+
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
     path=new FlxPath();
@@ -54,11 +61,21 @@ class Character extends FlxSprite{
     attackRange=25;
     direction=Direction.UP;
     motion=Motion.STAY;
-    makeGraphic(16, 16, 0xFFFFFFFF,true);
+    loadGraphic(AssetPaths.Character__png,true,32,32,true);
+    animation.add("StayUp"    ,[0],10,true);
+    animation.add("StayDown"  ,[0+4],10,true);
+    animation.add("StayLeft"  ,[0+4+4],10,true);
+    animation.add("StayRight" ,[0+4+4+4],10,true);
+    animation.add("WalkUp"    ,[2,1,2,3],10,true);
+    animation.add("WalkDown"  ,[2+4,1+4,2+4,3+4],10,true);
+    animation.add("WalkLeft"  ,[2+4+4,1+4+4,2+4+4,3+4+4],10,true);
+    animation.add("WalkRight" ,[2+4+4+4,1+4+4+4,2+4+4+4,3+4+4+4],10,true);
+    setSize(10,10);
+    offset.set(12,12);
     setPosition(x-width/2,y-height/2);
     attackInterval=new FlxTimer();
-    FlxSpriteUtil.drawTriangle(this,3,3,10,color);
     health=10;
+    FlxG.watch.add(this,"motion");
   }
 
   override public function update(elapsed:Float):Void{
@@ -70,7 +87,7 @@ class Character extends FlxSprite{
         motion=COMBAT;
         path.cancel();
         stareAtPoint(target.getMidpoint());
-        if(!attackInterval.active)
+       if(!attackInterval.active)
         attackInterval.start(3,function(a){
            PlayState.makeCollision().configure(
             target.getMidpoint().x,
@@ -81,15 +98,14 @@ class Character extends FlxSprite{
             target.health-=1;
         });
       }else{
+        motion=MOVING;
 				moveStart(PlayState.field.findPath(getMidpoint(),attackTarget[0].getMidpoint()));
-        attackInterval.cancel();
       }
       attackTarget=[];
-    }
-    if(choosing){
-      this.color=0xFF0000;
     }else{
-      this.color=0xFFFFFF;
+      attackInterval.cancel();
+      if(path.active)motion=MOVING;
+      else motion=STAY;
     }
     switch(motion){
       case STAY:
@@ -98,12 +114,25 @@ class Character extends FlxSprite{
       case COMBAT:
     }
     switch(direction){
-      case UP:angle=0;
-      case RIGHT:angle=90;
-      case DOWN:angle=180;
-      case LEFT:angle=-90;
+      case UP:
+        if(motion==MOVING)animation.play("WalkUp");
+        else animation.play("StayUp");
+      case RIGHT:
+        if(motion==MOVING)animation.play("WalkRight");
+        else animation.play("StayRight");
+      case DOWN:
+        if(motion==MOVING)animation.play("WalkDown");
+        else animation.play("StayDown");
+      case LEFT:
+        if(motion==MOVING)animation.play("WalkLeft");
+        else animation.play("StayLeft");
       default: throw Std.string(direction);
     }
+    // if(choosing){
+    //   this.color=0xFF0000;
+    // }else{
+    //   this.color=0xFFFFFF;
+    // }
   }
 
   /**
