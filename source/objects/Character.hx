@@ -66,12 +66,13 @@ class Character extends FlxSprite{
     animation.add("StayDown"  ,[0+4],10,true);
     animation.add("StayLeft"  ,[0+4+4],10,true);
     animation.add("StayRight" ,[0+4+4+4],10,true);
-    animation.add("WalkUp"    ,[2,1,2,3],10,true);
-    animation.add("WalkDown"  ,[2+4,1+4,2+4,3+4],10,true);
-    animation.add("WalkLeft"  ,[2+4+4,1+4+4,2+4+4,3+4+4],10,true);
-    animation.add("WalkRight" ,[2+4+4+4,1+4+4+4,2+4+4+4,3+4+4+4],10,true);
+    var motionIndex=0;
+    for(directionStr in ["Up","Down","Left","Right"]){
+      animation.add("Walk"+directionStr,[2+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,true);
+      motionIndex+=4;
+    }
     setSize(10,10);
-    offset.set(12,12);
+    offset.set(11,11);
     setPosition(x-width/2,y-height/2);
     attackInterval=new FlxTimer();
     health=10;
@@ -149,11 +150,11 @@ class Character extends FlxSprite{
   }
 
 	public function onMouseOver(character:Character){
-		setGraphicSize(character.graphic.width*2,character.graphic.height*2);
+		character.scale.set(2.0,2.0);
 	}
 
 	public function onMouseOut(character:Character){
-		character.setGraphicSize(Std.int(character.width),Std.int(character.height));
+		character.scale.set(1.0,1.0);
 	}
 
   /**
