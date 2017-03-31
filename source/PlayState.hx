@@ -15,6 +15,8 @@ import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
 import flixel.tile.FlxTilemap;
 import flixel.input.mouse.FlxMouseEventManager;
+import flixel.effects.particles.FlxEmitter;
+import flixel.effects.particles.FlxParticle;
 import objects.*;
 
 class PlayState extends FlxState{
@@ -67,6 +69,11 @@ class PlayState extends FlxState{
 	 * 当たり判定
 	 */
 	private static var collisions:FlxTypedGroup<Collision>;
+
+	/**
+	 * パーティクル
+	 */
+	private static var particleEmitter:FlxEmitter;
 
 	override public function create():Void{
 		super.create();
@@ -211,7 +218,12 @@ class PlayState extends FlxState{
 	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
 	  var characterPositions=new Map<Int,Character>();
 		var overlappings=new Map<Int,Array<Character>>();
-	
+
+		// キャラクターの表示順序の設定
+		characterPool.members.sort(function(a,b){
+			return Std.int(a.y-b.y);
+		});
+
 		FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
 			collision.onHitCallback(character);
 		});
