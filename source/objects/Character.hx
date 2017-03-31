@@ -62,17 +62,21 @@ class Character extends FlxSprite{
     direction=Direction.UP;
     motion=Motion.STAY;
     loadGraphic(AssetPaths.Character__png,true,32,32,true);
-    animation.add("StayUp"    ,[0],10,true);
-    animation.add("StayDown"  ,[0+4],10,true);
-    animation.add("StayLeft"  ,[0+4+4],10,true);
-    animation.add("StayRight" ,[0+4+4+4],10,true);
+    animation.add("STAYUP"    ,[0],10,true);
+    animation.add("STAYDOWN"  ,[0+4],10,true);
+    animation.add("STAYLEFT"  ,[0+4+4],10,true);
+    animation.add("STAYRIGHT" ,[0+4+4+4],10,true);
     var motionIndex=0;
-    for(directionStr in ["Up","Down","Left","Right"]){
-      animation.add("Walk"+directionStr,[2+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,true);
+    for(directionStr in ["UP","DOWN","LEFT","RIGHT"]){
+      animation.add("WALK"+directionStr,[2+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,true);
       motionIndex+=4;
     }
-    setSize(10,10);
-    offset.set(11,11);
+    for(directionStr in ["UP","DOWN","LEFT","RIGHT"]){
+      animation.add("ATTACK"+directionStr,[0+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,true);
+      motionIndex+=4;
+    }
+    setSize(11,15);
+    offset.set(10,13);
     setPosition(x-width/2,y-height/2);
     attackInterval=new FlxTimer();
     health=10;
@@ -99,41 +103,22 @@ class Character extends FlxSprite{
             target.health-=1;
         });
       }else{
-        motion=MOVING;
+        motion=WALK;
 				moveStart(PlayState.field.findPath(getMidpoint(),attackTarget[0].getMidpoint()));
       }
       attackTarget=[];
     }else{
       attackInterval.cancel();
-      if(path.active)motion=MOVING;
+      if(path.active)motion=WALK;
       else motion=STAY;
     }
     switch(motion){
       case STAY:
-      case MOVING:
+      case WALK:
         stareAtPoint(path.nodes[path.nodeIndex]);
       case COMBAT:
     }
-    switch(direction){
-      case UP:
-        if(motion==MOVING)animation.play("WalkUp");
-        else animation.play("StayUp");
-      case RIGHT:
-        if(motion==MOVING)animation.play("WalkRight");
-        else animation.play("StayRight");
-      case DOWN:
-        if(motion==MOVING)animation.play("WalkDown");
-        else animation.play("StayDown");
-      case LEFT:
-        if(motion==MOVING)animation.play("WalkLeft");
-        else animation.play("StayLeft");
-      default: throw Std.string(direction);
-    }
-    // if(choosing){
-    //   this.color=0xFF0000;
-    // }else{
-    //   this.color=0xFFFFFF;
-    // }
+    animation.play(Std.string(motion)+Std.string(direction));
   }
 
   /**
@@ -144,7 +129,7 @@ class Character extends FlxSprite{
   public function moveStart(dest:Array<FlxPoint>,?keepChoice:Bool=false){
     path.cancel();
     if(!keepChoice)choosing=false;
-    motion=Motion.MOVING;
+    motion=Motion.WALK;
     path.onComplete=function(path:FlxPath){motion=Motion.STAY;};
     path.start(dest);
   }

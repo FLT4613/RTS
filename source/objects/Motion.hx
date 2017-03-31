@@ -2,6 +2,6 @@ package objects;
 
 enum Motion{
   STAY;
-  MOVING;
+  WALK;
   COMBAT;
 }
