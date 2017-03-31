@@ -40,7 +40,13 @@ class Character extends FlxSprite{
   /**
    *  攻撃範囲に補足しているキャラクター
    */
-  public var attackTarget:Array<Character>;
+  public var attackTargets:Array<Character>;
+
+  /**
+   *  攻撃対象とするキャラクター
+   */
+  public var attackTarget:Character;
+
 
   /**
    *  攻撃間隔
@@ -56,7 +62,7 @@ class Character extends FlxSprite{
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
     path=new FlxPath();
-    attackTarget=new Array();
+    attackTargets=new Array();
     chasingRange=120;
     attackRange=25;
     direction=Direction.UP;
@@ -72,7 +78,7 @@ class Character extends FlxSprite{
       motionIndex+=4;
     }
     for(directionStr in ["UP","DOWN","LEFT","RIGHT"]){
-      animation.add("ATTACK"+directionStr,[0+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,true);
+      animation.add("ATTACK"+directionStr,[0+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,false);
       motionIndex+=4;
     }
     setSize(11,15);
@@ -86,39 +92,47 @@ class Character extends FlxSprite{
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
     if(health<1)kill();
-    if(!attackTarget.empty()){
-      var target=getAttackableTarget();
-      if(target!=null){
-        motion=COMBAT;
+    if(!attackTargets.empty()){
+      attackTarget=getAttackableTarget();
+      if(attackTarget!=null){
+        motion=ATTACK;
         path.cancel();
-        stareAtPoint(target.getMidpoint());
-       if(!attackInterval.active)
-        attackInterval.start(3,function(a){
-           PlayState.makeCollision().configure(
-            target.getMidpoint().x,
-            target.getMidpoint().y,
-            function(character:Character){
-              FlxSpriteUtil.flicker(character,0.5);
-            },objects.Collision.ColliderType.ONCE);
-            target.health-=1;
-        });
+        stareAtPoint(attackTarget.getMidpoint());
       }else{
         motion=WALK;
-				moveStart(PlayState.field.findPath(getMidpoint(),attackTarget[0].getMidpoint()));
+				moveStart(PlayState.field.findPath(getMidpoint(),attackTargets[0].getMidpoint()));
       }
-      attackTarget=[];
+      attackTargets=[];
     }else{
       attackInterval.cancel();
       if(path.active)motion=WALK;
       else motion=STAY;
     }
+
     switch(motion){
       case STAY:
+        animation.play(Std.string(motion)+Std.string(direction));
       case WALK:
         stareAtPoint(path.nodes[path.nodeIndex]);
-      case COMBAT:
-    }
-    animation.play(Std.string(motion)+Std.string(direction));
+        animation.play(Std.string(motion)+Std.string(direction));
+      case ATTACK:
+        if(attackInterval.active)animation.play("STAY"+Std.string(direction));        
+        else{
+          if(animation.curAnim!=animation.getByName("ATTACK"+Std.string(direction))){
+            animation.play(Std.string(motion)+Std.string(direction));
+          }else if(animation.finished){
+            PlayState.makeCollision().configure(
+              attackTarget.getMidpoint().x,
+              attackTarget.getMidpoint().y,
+              function(character:Character){
+                FlxSpriteUtil.flicker(character,0.5);
+              },objects.Collision.ColliderType.ONCE);
+            attackTarget.health-=1;
+            attackInterval.start(1.5);
+          } 
+        }
+
+      }
   }
 
   /**
@@ -148,7 +162,7 @@ class Character extends FlxSprite{
    */
   public function getAttackableTarget():Character{    
     var min:Character=null;
-    for(character in attackTarget.filter(function(a){
+    for(character in attackTargets.filter(function(a){
       return getMidpoint().distanceTo(a.getMidpoint())<attackRange;
       })){
       if(min==null){

@@ -128,13 +128,13 @@ class PlayState extends FlxState{
 		add(selectedRange);
 
 		FlxG.debugger.toggleKeys=["Q"];
-		FlxG.debugger.drawDebug=true;
 	}
 
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
 		FlxSpriteUtil.fill(ranges, 0x00000000);
 		if(FlxG.debugger.visible){
+			FlxG.debugger.drawDebug=true;
 			friendsSide.forEachAlive(function(character:Character){
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x33FF0000);
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.attackRange,0x33FF0000);
@@ -142,6 +142,8 @@ class PlayState extends FlxState{
 			enemiesSide.forEachAlive(function(character:Character){
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
 			});
+		}else{
+			FlxG.debugger.drawDebug=false;
 		}
 		
 		FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
@@ -188,10 +190,10 @@ class PlayState extends FlxState{
 		friendsSide.forEachAlive(function(friend:Character){
 			enemiesSide.forEachAlive(function(enemy:Character){
 				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
-					friend.attackTarget.push(enemy);
+					friend.attackTargets.push(enemy);
 				}
 				if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
-					enemy.attackTarget.push(friend);
+					enemy.attackTargets.push(friend);
 				}
 			});
 		});
