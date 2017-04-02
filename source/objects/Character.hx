@@ -7,7 +7,6 @@ import flixel.util.FlxColor;
 import flixel.math.FlxPoint;
 import flixel.util.FlxTimer;
 import objects.Direction;
-import objects.Motion;
 import flixel.effects.particles.FlxParticle;
 import flixel.addons.util.FlxFSM;
 class Character extends FlxSprite{
