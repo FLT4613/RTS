@@ -5,11 +5,13 @@ using flixel.util.FlxSpriteUtil;
 using Lambda;
 import flixel.util.FlxPath;
 import flixel.util.FlxColor;
+import flixel.util.helpers.FlxRange;
 import flixel.math.FlxPoint;
+import flixel.math.FlxAngle;
 import flixel.util.FlxTimer;
 import objects.Direction;
 import objects.Motion;
-
+import flixel.effects.particles.FlxParticle;
 class Character extends FlxSprite{
 
   /**
@@ -125,14 +127,26 @@ class Character extends FlxSprite{
               attackTarget.getMidpoint().x,
               attackTarget.getMidpoint().y,
               function(character:Character){
-                FlxSpriteUtil.flicker(character,0.5);
+                // FlxSpriteUtil.flicker(character,0.5);
               },objects.Collision.ColliderType.ONCE);
+              PlayState.particleEmitter.focusOn(this);
+              PlayState.particleEmitter.alpha.set(0,0,255);
+              PlayState.particleEmitter.speed.set(60);
+              PlayState.particleEmitter.lifespan.set(0.2);
+              for (i in 0 ... 10){
+                var p = new FlxParticle();
+                p.makeGraphic(2,2,FlxColor.YELLOW);
+                p.exists = false;
+                PlayState.particleEmitter.add(p);
+              }
+              PlayState.particleEmitter.start(true,0.02,4);
             attackTarget.health-=1;
             attackInterval.start(1.5);
           } 
         }
-
-      }
+     case DEAD:
+      
+    }
   }
 
   /**
