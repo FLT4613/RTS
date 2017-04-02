@@ -109,16 +109,15 @@ class PlayState extends FlxState{
 		
 		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
-		for(i in 0...6){
+		for(i in 0...1){
 			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,FlxColor.BLUE);
 			friendsSide.add(character);
-			FlxMouseEventManager.add(character,null,onMouseUp,character.onMouseOver,character.onMouseOut); 
 		}
 		choosings=new FlxTypedGroup<Character>();
 
 		// 敵キャラクターの定義
 		enemiesSide=new FlxTypedGroup<Character>();
-		for(i in 0...6){
+		for(i in 0...1){
 			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,FlxColor.RED);
 			enemiesSide.add(character);
 		}
@@ -163,138 +162,148 @@ class PlayState extends FlxState{
 			enemiesSide.forEachAlive(function(character:Character){
 				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
 			});
+			FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
+			FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		}else{
 			FlxG.debugger.drawDebug=false;
 		}
-		
-		FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
-		FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
-			clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
-			for (i in 0 ... 20){
-				var p = new FlxParticle();
-				p.makeGraphic(5,5,FlxColor.WHITE);
-				p.exists=false;
-				clickParticles.add(p);
+			var tileCoordX:Int = Math.floor(FlxG.mouse.x/gridSize);
+			var tileCoordY:Int = Math.floor(FlxG.mouse.y/gridSize);
+			if(FlxG.mouse.overlaps(friendsSide)){
+				choosings.add(friendsSide.members.find(function(character){
+					return character.overlapsPoint(FlxG.mouse.getPosition());
+				}));
+			}else{
+				clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
+				for (i in 0 ... 20){
+					var p = new FlxParticle();
+					p.makeGraphic(5,5,FlxColor.WHITE);
+					p.exists=false;
+					clickParticles.add(p);
+				}
+				clickParticles.start(true,0,10);			
+				if(!FlxG.keys.pressed.Z && choosings.length>0){
+					choosings.forEachAlive(function(character){
+						character.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
+					});
+					choosings.clear();
+				}
 			}
-			clickParticles.start(true,0,10);
 		}
 
 		if(FlxG.mouse.justPressedRight){
 			friendsSide.forEachAlive(function(character){
 				choosings.remove(character);
-				character.choosing=false;
 			});			
 		}
+
 		if(FlxG.mouse.pressed){
-			selectedRange.clipRect=FlxRect.weak(
-				(FlxG.mouse.x>selectedRangeStartPos.x)?selectedRangeStartPos.x:FlxG.mouse.x,
-				(FlxG.mouse.y>selectedRangeStartPos.y)?selectedRangeStartPos.y:FlxG.mouse.y,
-				Std.int(Math.abs(FlxG.mouse.x-selectedRangeStartPos.x)),
-				Std.int(Math.abs(FlxG.mouse.y-selectedRangeStartPos.y))
-			);
+			if(FlxG.swipes!=null){
+				selectedRange.clipRect=FlxRect.weak(
+					(FlxG.mouse.x>selectedRangeStartPos.x)?selectedRangeStartPos.x:FlxG.mouse.x,
+					(FlxG.mouse.y>selectedRangeStartPos.y)?selectedRangeStartPos.y:FlxG.mouse.y,
+					Std.int(Math.abs(FlxG.mouse.x-selectedRangeStartPos.x)),
+					Std.int(Math.abs(FlxG.mouse.y-selectedRangeStartPos.y))
+				);
+			}
 		}
+
 		if(FlxG.mouse.justReleased){			
-			var tileCoordX:Int = Math.floor(FlxG.mouse.x / gridSize);
-			var tileCoordY:Int = Math.floor(FlxG.mouse.y / gridSize);
 			friendsSide.forEachAlive(function(character){
-				if(FlxG.swipes[0].distance==0 && character.choosing){
-					var path=field.findPath(character.getMidpoint(),FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
-					character.moveStart(path,(FlxG.keys.pressed.A)?true:false);
-				}
 				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
 					choosings.add(character);
-					character.choosing=true;
 				}
 			});
+
 			selectedRange.kill();	
 		}
-		charactersCommonSequence(friendsSide);
-		charactersCommonSequence(enemiesSide);
+		// charactersCommonSequence(friendsSide);
+		// charactersCommonSequence(enemiesSide);
 
-		friendsSide.forEachAlive(function(friend:Character){
-			enemiesSide.forEachAlive(function(enemy:Character){
-				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
-					friend.attackTargets.push(enemy);
-				}
-				if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
-					enemy.attackTargets.push(friend);
-				}
-			});
-		});
+		// friendsSide.forEachAlive(function(friend:Character){
+		// 	enemiesSide.forEachAlive(function(enemy:Character){
+		// 		if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
+		// 			friend.attackTargets.push(enemy);
+		// 		}
+		// 		if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
+		// 			enemy.attackTargets.push(friend);
+		// 		}
+		// 	});
+		// });
 	}
 
-	public function onMouseUp(character:Character){
-		if(character.choosing){
-			choosings.remove(character);
-		}else{
-			choosings.add(character);
-		}
-    character.choosing=(character.choosing)?false:true;
-	}
+	// public function onMouseUp(character:Character){
+	// 	if(character.choosing){
+	// 		choosings.remove(character);
+	// 	}else{
+	// 		choosings.add(character);
+	// 	}
+  //   character.choosing=(character.choosing)?false:true;
+	// }
 
-	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
-	  var characterPositions=new Map<Int,Character>();
-		var overlappings=new Map<Int,Array<Character>>();
+	// public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
+	//   var characterPositions=new Map<Int,Character>();
+	// 	var overlappings=new Map<Int,Array<Character>>();
 
-		// キャラクターの表示順序の設定
-		characterPool.members.sort(function(a,b){
-			return Std.int(a.y-b.y);
-		});
+	// 	// キャラクターの表示順序の設定
+	// 	characterPool.members.sort(function(a,b){
+	// 		return Std.int(a.y-b.y);
+	// 	});
 
-		FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
-			collision.onHitCallback(character);
-		});
-		characterPool.forEachAlive(function(character:Character){
-			var index=field.getTileIndexByCoords(character.getMidpoint());
-			if(character.motion==Motion.STAY){
-				if(characterPositions.exists(index)){
-					if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
-					overlappings.get(index).push(character);
-				}else{
-					characterPositions.set(index,character);
-				}
-			}
-		});
+	// 	FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
+	// 		collision.onHitCallback(character);
+	// 	});
+	// 	characterPool.forEachAlive(function(character:Character){
+	// 		var index=field.getTileIndexByCoords(character.getMidpoint());
+	// 		if(character.motion==Motion.STAY){
+	// 			if(characterPositions.exists(index)){
+	// 				if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
+	// 				overlappings.get(index).push(character);
+	// 			}else{
+	// 				characterPositions.set(index,character);
+	// 			}
+	// 		}
+	// 	});
 
-		for(overlapPoint in overlappings.keys()){
-			var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
-			var criteria=characterPositions.get(overlapPoint).direction;
-			var passableIndexes=new Array<Int>();
-			for(direction in [criteria.clockwise().clockwise(),criteria,criteria.antiClockwise().antiClockwise(),criteria.reverse()]){
-				var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
-				if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
-					passableIndexes.push(checkingPoint);
-				}
-			}
-			if(passableIndexes.empty()){
-				continue;
-			}
-			var route=passableIndexes.find(function(index:Int){
-				return !characterPositions.exists(index);
-			});
-			if(route==null){
-				var representDir=overlappings.get(overlapPoint)[0].direction;
-				for(direction in [representDir.clockwise().clockwise(),representDir,representDir.antiClockwise().antiClockwise(),representDir.reverse()]){
-					var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
-					if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
-						route=checkingPoint;
-						break;
-					}
-				}
-			}
-			overlappings.get(overlapPoint).iter(function(character:Character){
-				character.moveStart(
-					field.findPath(character.getMidpoint(),
-					field.getTileCoordsByIndex(route,true)),
-					true);
-			});
-		}
-	}
+	// 	for(overlapPoint in overlappings.keys()){
+	// 		var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
+	// 		var criteria=characterPositions.get(overlapPoint).direction;
+	// 		var passableIndexes=new Array<Int>();
+	// 		for(direction in [criteria.clockwise().clockwise(),criteria,criteria.antiClockwise().antiClockwise(),criteria.reverse()]){
+	// 			var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
+	// 			if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
+	// 				passableIndexes.push(checkingPoint);
+	// 			}
+	// 		}
+	// 		if(passableIndexes.empty()){
+	// 			continue;
+	// 		}
+	// 		var route=passableIndexes.find(function(index:Int){
+	// 			return !characterPositions.exists(index);
+	// 		});
+	// 		if(route==null){
+	// 			var representDir=overlappings.get(overlapPoint)[0].direction;
+	// 			for(direction in [representDir.clockwise().clockwise(),representDir,representDir.antiClockwise().antiClockwise(),representDir.reverse()]){
+	// 				var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
+	// 				if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
+	// 					route=checkingPoint;
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 		overlappings.get(overlapPoint).iter(function(character:Character){
+	// 			character.moveStart(
+	// 				field.findPath(character.getMidpoint(),
+	// 				field.getTileCoordsByIndex(route,true)),
+	// 				true);
+	// 		});
+	// 	}
+	// }
 
 	public static function makeCollision():Collision{
 		return collisions.recycle(Collision,Collision.new);
