@@ -73,7 +73,12 @@ class PlayState extends FlxState{
 	/**
 	 * パーティクル
 	 */
-	private static var particleEmitter:FlxEmitter;
+	public static var particleEmitter:FlxEmitter;
+
+	/**
+	 * クリック地点に発生するパーティクル
+	 */
+	public static var clickParticles:FlxEmitter;
 
 	override public function create():Void{
 		super.create();
@@ -113,7 +118,7 @@ class PlayState extends FlxState{
 
 		// 敵キャラクターの定義
 		enemiesSide=new FlxTypedGroup<Character>();
-		for(i in 0...1){
+		for(i in 0...6){
 			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,FlxColor.RED);
 			enemiesSide.add(character);
 		}
@@ -125,6 +130,13 @@ class PlayState extends FlxState{
 		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
 		selectedRange.kill();
 	
+		particleEmitter = new FlxEmitter(0, 0);
+		clickParticles = new FlxEmitter(0, 0);
+
+		clickParticles.alpha.set(0,0,255);
+		clickParticles.speed.set(60);
+		clickParticles.lifespan.set(0.4);
+
 		// 下位レイヤから加える
 		add(field);
 		add(grid);
@@ -132,6 +144,8 @@ class PlayState extends FlxState{
 		add(friendsSide);
 		add(enemiesSide);
 		add(collisions);
+		add(particleEmitter);
+		add(clickParticles);
 		add(selectedRange);
 
 		FlxG.debugger.toggleKeys=["Q"];
@@ -160,6 +174,14 @@ class PlayState extends FlxState{
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
+			clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
+			for (i in 0 ... 20){
+				var p = new FlxParticle();
+				p.makeGraphic(5,5,FlxColor.WHITE);
+				p.exists=false;
+				clickParticles.add(p);
+			}
+			clickParticles.start(true,0,10);
 		}
 
 		if(FlxG.mouse.justPressedRight){
