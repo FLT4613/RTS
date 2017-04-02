@@ -80,6 +80,8 @@ class PlayState extends FlxState{
 	 */
 	public static var clickParticles:FlxEmitter;
 
+	public var cursor:Cursor;
+
 	override public function create():Void{
 		super.create();
 		field=new FlxTilemap();
@@ -109,7 +111,7 @@ class PlayState extends FlxState{
 		
 		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
-		for(i in 0...1){
+		for(i in 0...3){
 			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,FlxColor.BLUE);
 			friendsSide.add(character);
 		}
@@ -136,6 +138,8 @@ class PlayState extends FlxState{
 		clickParticles.speed.set(60);
 		clickParticles.lifespan.set(0.4);
 
+		cursor=new Cursor();
+
 		// 下位レイヤから加える
 		add(field);
 		add(grid);
@@ -146,7 +150,7 @@ class PlayState extends FlxState{
 		add(particleEmitter);
 		add(clickParticles);
 		add(selectedRange);
-
+		add(cursor);
 		FlxG.debugger.toggleKeys=["Q"];
 	}
 
@@ -167,17 +171,35 @@ class PlayState extends FlxState{
 		}else{
 			FlxG.debugger.drawDebug=false;
 		}
-		
+
+		var nearest:Character=null;
+		friendsSide.forEachAlive(function(character){
+			var distance=character.getMidpoint().distanceTo(FlxG.mouse.getPosition());
+			if(distance>16)return;
+			if(nearest==null){
+				nearest=character;
+				return;
+			}
+			if(nearest.getMidpoint().distanceTo(FlxG.mouse.getPosition())>distance){
+				nearest=character;
+			}
+		});
+
+		if(nearest!=null){
+			cursor.visible=true;
+			cursor.setPosition(nearest.x-8,nearest.y-8);
+		}else{
+			cursor.visible=false;
+		}
+
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
 			selectedRangeStartPos=FlxG.mouse.getPosition();
 			var tileCoordX:Int = Math.floor(FlxG.mouse.x/gridSize);
 			var tileCoordY:Int = Math.floor(FlxG.mouse.y/gridSize);
-			if(FlxG.mouse.overlaps(friendsSide)){
-				choosings.add(friendsSide.members.find(function(character){
-					return character.overlapsPoint(FlxG.mouse.getPosition());
-				}));
+			if(nearest!=null){
+				choosings.add(nearest);
 			}else{
 				clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
 				for (i in 0 ... 20){
