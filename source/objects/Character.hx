@@ -49,7 +49,7 @@ class Character extends FlxSprite{
   /**
    *  キャラクターのとる状態
    */
-  private var fsm:FlxFSM<Character>;
+  public var fsm:FlxFSM<Character>;
 
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();

@@ -135,8 +135,8 @@ class PlayState extends FlxState{
 		clickParticles = new FlxEmitter(0, 0);
 
 		clickParticles.alpha.set(0,0,255);
-		clickParticles.speed.set(60);
-		clickParticles.lifespan.set(0.4);
+		clickParticles.speed.set(100);
+		clickParticles.lifespan.set(0.2);
 
 		cursor=new Cursor();
 
@@ -244,8 +244,8 @@ class PlayState extends FlxState{
 
 			selectedRange.kill();	
 		}
-		// charactersCommonSequence(friendsSide);
-		// charactersCommonSequence(enemiesSide);
+		charactersCommonSequence(friendsSide);
+		charactersCommonSequence(enemiesSide);
 
 		// friendsSide.forEachAlive(function(friend:Character){
 		// 	enemiesSide.forEachAlive(function(enemy:Character){
@@ -259,73 +259,61 @@ class PlayState extends FlxState{
 		// });
 	}
 
-	// public function onMouseUp(character:Character){
-	// 	if(character.choosing){
-	// 		choosings.remove(character);
-	// 	}else{
-	// 		choosings.add(character);
-	// 	}
-  //   character.choosing=(character.choosing)?false:true;
-	// }
+	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
+	  var characterPositions=new Map<Int,Character>();
+		var overlappings=new Map<Int,Array<Character>>();
 
-	// public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
-	//   var characterPositions=new Map<Int,Character>();
-	// 	var overlappings=new Map<Int,Array<Character>>();
+		// キャラクターの表示順序の設定
+		characterPool.members.sort(function(a,b){
+			return Std.int(a.y-b.y);
+		});
 
-	// 	// キャラクターの表示順序の設定
-	// 	characterPool.members.sort(function(a,b){
-	// 		return Std.int(a.y-b.y);
-	// 	});
+		FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
+			collision.onHitCallback(character);
+		});
+		characterPool.forEachAlive(function(character:Character){
+			var index=field.getTileIndexByCoords(character.getMidpoint());
+			if(character.fsm.stateClass==objects.Character.Idle){
+				if(characterPositions.exists(index)){
+					if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
+					overlappings.get(index).push(character);
+				}else{
+					characterPositions.set(index,character);
+				}
+			}
+		});
 
-	// 	FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
-	// 		collision.onHitCallback(character);
-	// 	});
-	// 	characterPool.forEachAlive(function(character:Character){
-	// 		var index=field.getTileIndexByCoords(character.getMidpoint());
-	// 		if(character.motion==Motion.STAY){
-	// 			if(characterPositions.exists(index)){
-	// 				if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
-	// 				overlappings.get(index).push(character);
-	// 			}else{
-	// 				characterPositions.set(index,character);
-	// 			}
-	// 		}
-	// 	});
-
-	// 	for(overlapPoint in overlappings.keys()){
-	// 		var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
-	// 		var criteria=characterPositions.get(overlapPoint).direction;
-	// 		var passableIndexes=new Array<Int>();
-	// 		for(direction in [criteria.clockwise().clockwise(),criteria,criteria.antiClockwise().antiClockwise(),criteria.reverse()]){
-	// 			var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
-	// 			if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
-	// 				passableIndexes.push(checkingPoint);
-	// 			}
-	// 		}
-	// 		if(passableIndexes.empty()){
-	// 			continue;
-	// 		}
-	// 		var route=passableIndexes.find(function(index:Int){
-	// 			return !characterPositions.exists(index);
-	// 		});
-	// 		if(route==null){
-	// 			var representDir=overlappings.get(overlapPoint)[0].direction;
-	// 			for(direction in [representDir.clockwise().clockwise(),representDir,representDir.antiClockwise().antiClockwise(),representDir.reverse()]){
-	// 				var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
-	// 				if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
-	// 					route=checkingPoint;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 		overlappings.get(overlapPoint).iter(function(character:Character){
-	// 			character.moveStart(
-	// 				field.findPath(character.getMidpoint(),
-	// 				field.getTileCoordsByIndex(route,true)),
-	// 				true);
-	// 		});
-	// 	}
-	// }
+		for(overlapPoint in overlappings.keys()){
+			var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
+			var criteria=characterPositions.get(overlapPoint).direction;
+			var passableIndexes=new Array<Int>();
+			for(direction in [criteria.clockwise().clockwise(),criteria,criteria.antiClockwise().antiClockwise(),criteria.reverse()]){
+				var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
+				if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
+					passableIndexes.push(checkingPoint);
+				}
+			}
+			if(passableIndexes.empty()){
+				continue;
+			}
+			var route=passableIndexes.find(function(index:Int){
+				return !characterPositions.exists(index);
+			});
+			if(route==null){
+				var representDir=overlappings.get(overlapPoint)[0].direction;
+				for(direction in [representDir.clockwise().clockwise(),representDir,representDir.antiClockwise().antiClockwise(),representDir.reverse()]){
+					var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
+					if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
+						route=checkingPoint;
+						break;
+					}
+				}
+			}
+			overlappings.get(overlapPoint).iter(function(character:Character){
+				character.moveStart(field.getTileCoordsByIndex(route,true));
+			});
+		}
+	}
 
 	public static function makeCollision():Collision{
 		return collisions.recycle(Collision,Collision.new);
