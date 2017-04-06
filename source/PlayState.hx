@@ -247,16 +247,16 @@ class PlayState extends FlxState{
 		charactersCommonSequence(friendsSide);
 		charactersCommonSequence(enemiesSide);
 
-		// friendsSide.forEachAlive(function(friend:Character){
-		// 	enemiesSide.forEachAlive(function(enemy:Character){
-		// 		if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
-		// 			friend.attackTargets.push(enemy);
-		// 		}
-		// 		if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
-		// 			enemy.attackTargets.push(friend);
-		// 		}
-		// 	});
-		// });
+		friendsSide.forEachAlive(function(friend:Character){
+			enemiesSide.forEachAlive(function(enemy:Character){
+				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
+					friend.attackTargets.push(enemy);
+				}
+				if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
+					enemy.attackTargets.push(friend);
+				}
+			});
+		});
 	}
 
 	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){

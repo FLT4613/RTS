@@ -42,11 +42,6 @@ class Character extends FlxSprite{
   public var attackTarget:Character;
 
   /**
-   *  攻撃間隔
-   */
-  public var attackInterval:FlxTimer;
-
-  /**
    *  キャラクターのとる状態
    */
   public var fsm:FlxFSM<Character>;
@@ -70,13 +65,12 @@ class Character extends FlxSprite{
       motionIndex+=4;
     }
     for(directionStr in ["UP","DOWN","LEFT","RIGHT"]){
-      animation.add("ATTACK"+directionStr,[0+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,false);
+      animation.add("Attack"+directionStr,[0+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,false);
       motionIndex+=4;
     }
     setSize(11,15);
     offset.set(10,13);
     setPosition(x-width/2,y-height/2);
-    attackInterval=new FlxTimer();
     health=10;
 
     fsm=new FlxFSM<Character>(this);
@@ -84,63 +78,26 @@ class Character extends FlxSprite{
       return !a.destinations.empty();
     }).add(Move,Idle,function(a){
       return a.path.finished;
+    }).add(Idle,Chase,function(a){
+      return !attackTargets.empty();
+    }).add(Move,Chase,function(a){
+      return !attackTargets.empty();
+    }).add(Chase,Idle,function(a){
+      return attackTargets.empty();
+    }).add(Chase,Attack,function(a){
+      attackTarget=getAttackableTarget();
+      return attackTarget!=null;
+    }).add(Attack,Chase,function(a){
+      return animation.finished;
     }).start(Idle); 
+    FlxG.watch.add(fsm,"stateClass");
   }
 
   override public function update(elapsed:Float):Void{
     fsm.update(elapsed);
     super.update(elapsed);
     if(health<1)kill();
-    // if(!attackTargets.empty()){
-    //   attackTarget=getAttackableTarget();
-    //   if(attackTarget!=null){
-    //     motion=ATTACK;
-    //     path.cancel();
-    //     stareAtPoint(attackTarget.getMidpoint());
-    //   }else{
-    //     motion=WALK;
-    //   }
-    //   attackTargets=[];
-    // }else{
-    //   attackInterval.cancel();
-    //   if(path.active)motion=WALK;
-    //   else motion=STAY;
-    // }
-
-    // switch(motion){
-    //   case STAY:
-        
-    //   case WALK:
-    //     stareAtPoint(path.nodes[path.nodeIndex]);
-    //     animation.play(Std.string(motion)+Std.string(direction));
-    //   case ATTACK:
-    //     if(attackInterval.active)animation.play("STAY"+Std.string(direction));        
-    //     else{
-    //       if(animation.curAnim!=animation.getByName("ATTACK"+Std.string(direction))){
-    //         animation.play(Std.string(motion)+Std.string(direction));
-    //       }else if(animation.finished){
-    //         PlayState.makeCollision().configure(
-    //           attackTarget.getMidpoint().x,
-    //           attackTarget.getMidpoint().y,
-    //           function(character:Character){
-    //             // FlxSpriteUtil.flicker(character,0.5);
-    //           },objects.Collision.ColliderType.ONCE);
-    //           PlayState.particleEmitter.focusOn(this);
-    //           PlayState.particleEmitter.alpha.set(0,0,255);
-    //           PlayState.particleEmitter.speed.set(60);
-    //           PlayState.particleEmitter.lifespan.set(0.2);
-    //           for (i in 0 ... 10){
-    //             var p = new FlxParticle();
-    //             p.makeGraphic(2,2,FlxColor.YELLOW);
-    //             p.exists = false;
-    //             PlayState.particleEmitter.add(p);
-    //           }
-    //           PlayState.particleEmitter.start(true,0.02,4);
-    //         attackTarget.health-=1;
-    //         attackInterval.start(1.5);
-    //       } 
-    //     }
-    // }
+    attackTargets=[];
   }
 
   /**
@@ -190,10 +147,6 @@ class Character extends FlxSprite{
   }
 }
 
-// class Conditions{
-//   public static function 
-// }
-
 class Idle extends FlxFSMState<Character>{
   override public function enter(owner:Character,fsm:FlxFSM<Character>){
     owner.animation.play("Idle"+Std.string(owner.direction));
@@ -213,5 +166,69 @@ class Move extends FlxFSMState<Character>{
 
   override public function exit(owner:Character){
     owner.path.cancel();
+  }
+}
+
+class Chase extends FlxFSMState<Character>{
+  override public function enter(owner:Character,fsm:FlxFSM<Character>){
+    
+  }
+  
+  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
+    if(!owner.attackTargets.empty()){
+      owner.animation.play("Move"+Std.string(owner.direction));
+      var path=PlayState.field.findPath(owner.getMidpoint(),owner.attackTargets[0].getMidpoint());
+      owner.stareAtPoint(path[0]);
+      owner.path.start(path);
+    };
+  }
+
+  override public function exit(owner:Character){
+    owner.path.cancel();
+  }
+}
+
+class Attack extends FlxFSMState<Character>{
+  /**
+   *  攻撃間隔
+   */
+  public var attackInterval:FlxTimer;
+  
+  override public function new(elapsed:Float){
+    super();
+    attackInterval=new FlxTimer();
+  }
+
+  override public function enter(owner:Character,fsm:FlxFSM<Character>){
+    attackInterval.start(1.5);
+    owner.stareAtPoint(owner.attackTarget.getMidpoint());
+    owner.animation.play("Attack"+Std.string(owner.direction));
+    owner.animation.pause();
+  }
+  
+  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
+    if(attackInterval.finished)owner.animation.resume();
+  }
+
+  override public function exit(owner:Character){
+    PlayState.makeCollision().configure(
+      owner.attackTarget.getMidpoint().x,
+      owner.attackTarget.getMidpoint().y,
+      function(character:Character){
+        // FlxSpriteUtil.flicker(character,0.5);
+      },objects.Collision.ColliderType.ONCE);
+      PlayState.particleEmitter.focusOn(owner);
+      PlayState.particleEmitter.alpha.set(0,0,255);
+      PlayState.particleEmitter.speed.set(60);
+      PlayState.particleEmitter.lifespan.set(0.2);
+      for (i in 0 ... 10){
+        var p = new FlxParticle();
+        p.makeGraphic(2,2,FlxColor.YELLOW);
+        p.exists = false;
+        PlayState.particleEmitter.add(p);
+      }
+      PlayState.particleEmitter.start(true,0.02,4);
+      owner.attackTarget.health-=1;
+      owner.attackTarget=null;
   }
 }
