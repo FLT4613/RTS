@@ -14,7 +14,6 @@ import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
 import flixel.tile.FlxTilemap;
-import flixel.input.mouse.FlxMouseEventManager;
 import flixel.effects.particles.FlxEmitter;
 import flixel.effects.particles.FlxParticle;
 import objects.*;
@@ -80,7 +79,12 @@ class PlayState extends FlxState{
 	 */
 	public static var clickParticles:FlxEmitter;
 
+	/**
+	 * マウスポインタが指すオブジェクトを明確にするカーソル
+	 */
 	public var cursor:Cursor;
+
+	public var highlightFrames:FlxSpriteGroup;
 
 	override public function create():Void{
 		super.create();
@@ -140,6 +144,13 @@ class PlayState extends FlxState{
 
 		cursor=new Cursor();
 
+		highlightFrames=new FlxSpriteGroup();
+		for(i in 0...100){
+			var highlightFrame=new Cursor();
+			highlightFrame.kill();
+			highlightFrames.add(highlightFrame);
+		}
+
 		// 下位レイヤから加える
 		add(field);
 		add(grid);
@@ -151,6 +162,7 @@ class PlayState extends FlxState{
 		add(clickParticles);
 		add(selectedRange);
 		add(cursor);
+		add(highlightFrames);
 		FlxG.debugger.toggleKeys=["Q"];
 	}
 
@@ -192,6 +204,16 @@ class PlayState extends FlxState{
 			cursor.visible=false;
 		}
 
+		highlightFrames.forEachAlive(function(frame){
+			frame.kill();
+		});
+		
+		choosings.forEachAlive(function(character){
+			var frame=highlightFrames.getFirstDead();
+			frame.revive();
+			frame.setPosition(character.x-8,character.y-8);
+		});
+
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
 			selectedRange.clipRect=FlxRect.weak();
@@ -209,11 +231,11 @@ class PlayState extends FlxState{
 					clickParticles.add(p);
 				}
 				clickParticles.start(true,0,10);			
-				if(!FlxG.keys.pressed.Z && choosings.length>0){
+				if(choosings.length>0){
 					choosings.forEachAlive(function(character){
 						character.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
 					});
-					choosings.clear();
+					if(!FlxG.keys.pressed.Z)choosings.clear();
 				}
 			}
 		}
