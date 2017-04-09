@@ -4,6 +4,7 @@ import flixel.FlxSprite;
 using Lambda;
 import flixel.util.FlxPath;
 import flixel.util.FlxColor;
+import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.util.FlxTimer;
 import objects.Direction;
@@ -45,6 +46,8 @@ class Character extends FlxSprite{
    *  キャラクターのとる状態
    */
   public var fsm:FlxFSM<Character>;
+
+  public var cursorSize:FlxRect;
 
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
@@ -90,6 +93,9 @@ class Character extends FlxSprite{
     }).add(Attack,Chase,function(a){
       return animation.finished;
     }).start(Idle); 
+
+    cursorSize=new FlxRect().fromTwoPoints(FlxPoint.weak(6,4),FlxPoint.weak(25,28));
+
     FlxG.watch.add(fsm,"stateClass");
   }
 

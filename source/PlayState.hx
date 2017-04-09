@@ -84,7 +84,7 @@ class PlayState extends FlxState{
 	 */
 	public var cursor:Cursor;
 
-	public var highlightFrames:FlxSpriteGroup;
+	public var highlightFrames:FlxTypedGroup<Cursor>;
 
 	override public function create():Void{
 		super.create();
@@ -143,8 +143,8 @@ class PlayState extends FlxState{
 		clickParticles.lifespan.set(0.2);
 
 		cursor=new Cursor();
-
-		highlightFrames=new FlxSpriteGroup();
+		
+		highlightFrames=new FlxTypedGroup<Cursor>();
 		for(i in 0...100){
 			var highlightFrame=new Cursor();
 			highlightFrame.kill();
@@ -199,7 +199,7 @@ class PlayState extends FlxState{
 
 		if(nearest!=null){
 			cursor.visible=true;
-			cursor.setPosition(nearest.x-8,nearest.y-8);
+			cursor.capture(nearest);
 		}else{
 			cursor.visible=false;
 		}
@@ -211,7 +211,7 @@ class PlayState extends FlxState{
 		choosings.forEachAlive(function(character){
 			var frame=highlightFrames.getFirstDead();
 			frame.revive();
-			frame.setPosition(character.x-8,character.y-8);
+			frame.capture(character);
 		});
 
 		if(FlxG.mouse.justPressed){
