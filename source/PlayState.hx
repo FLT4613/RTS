@@ -5,7 +5,6 @@ using Lambda;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
-import flixel.group.FlxSpriteGroup;
 using flixel.util.FlxSpriteUtil;
 import flixel.FlxState;
 import flixel.util.FlxColor;

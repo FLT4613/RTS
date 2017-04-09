@@ -91,7 +91,7 @@ class Character extends FlxSprite{
       attackTarget=getAttackableTarget();
       return attackTarget!=null;
     }).add(Attack,Chase,function(a){
-      return animation.finished;
+      return animation.finished || !attackTarget.alive;
     }).start(Idle); 
 
     cursorSize=new FlxRect().fromTwoPoints(FlxPoint.weak(6,4),FlxPoint.weak(25,28));
@@ -214,15 +214,13 @@ class Attack extends FlxFSMState<Character>{
   
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     if(attackInterval.finished)owner.animation.resume();
-  }
-
-  override public function exit(owner:Character){
-    PlayState.makeCollision().configure(
-      owner.attackTarget.getMidpoint().x,
-      owner.attackTarget.getMidpoint().y,
-      function(character:Character){
-        // FlxSpriteUtil.flicker(character,0.5);
-      },objects.Collision.ColliderType.ONCE);
+    if(owner.animation.finished){
+      PlayState.makeCollision().configure(
+        owner.attackTarget.getMidpoint().x,
+        owner.attackTarget.getMidpoint().y,
+        function(character:Character){
+          // FlxSpriteUtil.flicker(character,0.5);
+        },objects.Collision.ColliderType.ONCE);
       PlayState.particleEmitter.focusOn(owner);
       PlayState.particleEmitter.alpha.set(0,0,255);
       PlayState.particleEmitter.speed.set(60);
@@ -236,5 +234,10 @@ class Attack extends FlxFSMState<Character>{
       PlayState.particleEmitter.start(true,0.02,4);
       owner.attackTarget.health-=1;
       owner.attackTarget=null;
+    }
+  }
+
+  override public function exit(owner:Character){
+
   }
 }
