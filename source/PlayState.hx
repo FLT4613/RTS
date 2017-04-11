@@ -78,13 +78,6 @@ class PlayState extends FlxState{
 	 */
 	public static var clickParticles:FlxEmitter;
 
-	/**
-	 * マウスポインタが指すオブジェクトを明確にするカーソル
-	 */
-	public var cursor:Cursor;
-
-	public var highlightFrames:FlxTypedGroup<Cursor>;
-
 	override public function create():Void{
 		super.create();
 		field=new FlxTilemap();
@@ -141,15 +134,6 @@ class PlayState extends FlxState{
 		clickParticles.speed.set(100);
 		clickParticles.lifespan.set(0.2);
 
-		cursor=new Cursor();
-		
-		highlightFrames=new FlxTypedGroup<Cursor>();
-		for(i in 0...100){
-			var highlightFrame=new Cursor();
-			highlightFrame.kill();
-			highlightFrames.add(highlightFrame);
-		}
-
 		// 下位レイヤから加える
 		add(field);
 		add(grid);
@@ -160,8 +144,6 @@ class PlayState extends FlxState{
 		add(particleEmitter);
 		add(clickParticles);
 		add(selectedRange);
-		add(cursor);
-		add(highlightFrames);
 		FlxG.debugger.toggleKeys=["Q"];
 	}
 
@@ -185,6 +167,7 @@ class PlayState extends FlxState{
 
 		var nearest:Character=null;
 		friendsSide.forEachAlive(function(character){
+			character.mouseOverlappedMark.visible=false;
 			var distance=character.getMidpoint().distanceTo(FlxG.mouse.getPosition());
 			if(distance>16)return;
 			if(nearest==null){
@@ -197,21 +180,8 @@ class PlayState extends FlxState{
 		});
 
 		if(nearest!=null){
-			cursor.visible=true;
-			cursor.capture(nearest);
-		}else{
-			cursor.visible=false;
+			nearest.mouseOverlappedMark.visible=true;
 		}
-
-		highlightFrames.forEachAlive(function(frame){
-			frame.kill();
-		});
-		
-		choosings.forEachAlive(function(character){
-			var frame=highlightFrames.getFirstDead();
-			frame.revive();
-			frame.capture(character);
-		});
 
 		if(FlxG.mouse.justPressed){
 			selectedRange.revive();
@@ -221,6 +191,7 @@ class PlayState extends FlxState{
 			var tileCoordY:Int = Math.floor(FlxG.mouse.y/gridSize);
 			if(nearest!=null){
 				choosings.add(nearest);
+				nearest.pickedMark.visible=true;
 			}else{
 				clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
 				for (i in 0 ... 20){
@@ -233,8 +204,11 @@ class PlayState extends FlxState{
 				if(choosings.length>0){
 					choosings.forEachAlive(function(character){
 						character.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
+						if(!FlxG.keys.pressed.Z){character.pickedMark.visible=false;}
 					});
-					if(!FlxG.keys.pressed.Z)choosings.clear();
+					if(!FlxG.keys.pressed.Z){
+						choosings.clear();
+					}
 				}
 			}
 		}
@@ -242,6 +216,7 @@ class PlayState extends FlxState{
 		if(FlxG.mouse.justPressedRight){
 			friendsSide.forEachAlive(function(character){
 				choosings.remove(character);
+				character.pickedMark.visible=false;
 			});			
 		}
 
@@ -260,6 +235,7 @@ class PlayState extends FlxState{
 			friendsSide.forEachAlive(function(character){
 				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
 					choosings.add(character);
+					character.pickedMark.visible=true;
 				}
 			});
 

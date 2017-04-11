@@ -10,7 +10,9 @@ import flixel.util.FlxTimer;
 import objects.Direction;
 import flixel.effects.particles.FlxParticle;
 import flixel.addons.util.FlxFSM;
-class Character extends FlxSprite{
+import flixel.addons.display.FlxNestedSprite;
+
+class Character extends FlxNestedSprite{
   /**
    *  キャラクターの向き
    */
@@ -47,7 +49,14 @@ class Character extends FlxSprite{
    */
   public var fsm:FlxFSM<Character>;
 
+  /**
+   *  カーソル四方のL字の間隔
+   */
   public var cursorSize:FlxRect;
+
+	public var mouseOverlappedMark:FlxNestedSprite;
+
+	public var pickedMark:FlxNestedSprite;
 
   override public function new(x:Float,y:Float,color:FlxColor):Void{
     super();
@@ -76,6 +85,14 @@ class Character extends FlxSprite{
     setPosition(x-width/2,y-height/2);
     health=10;
 
+    mouseOverlappedMark=new FlxNestedSprite();
+    mouseOverlappedMark.loadGraphic(AssetPaths.Cursor__png);
+    add(mouseOverlappedMark);
+    pickedMark=new FlxNestedSprite();
+    pickedMark.loadGraphic(AssetPaths.Cursor__png);
+    add(pickedMark);
+    mouseOverlappedMark.visible=false;
+    pickedMark.visible=false;
     fsm=new FlxFSM<Character>(this);
     fsm.transitions.add(Idle,Move,function(a){
       return !a.destinations.empty();
@@ -168,6 +185,7 @@ class Move extends FlxFSMState<Character>{
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     owner.animation.play("Move"+Std.string(owner.direction));
     owner.stareAtPoint(owner.path.nodes[owner.path.nodeIndex]);
+    owner.path.update(elapsed);
   }
 
   override public function exit(owner:Character){
@@ -186,6 +204,7 @@ class Chase extends FlxFSMState<Character>{
       var path=PlayState.field.findPath(owner.getMidpoint(),owner.attackTargets[0].getMidpoint());
       owner.stareAtPoint(path[0]);
       owner.path.start(path);
+      owner.path.update(elapsed);
     };
   }
 
