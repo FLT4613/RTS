@@ -190,8 +190,12 @@ class PlayState extends FlxState{
 			var tileCoordX:Int = Math.floor(FlxG.mouse.x/gridSize);
 			var tileCoordY:Int = Math.floor(FlxG.mouse.y/gridSize);
 			if(nearest!=null){
-				choosings.add(nearest);
-				nearest.pickedMark.visible=true;
+				if(nearest.pickedMark.visible){
+					choosings.remove(nearest);
+				}else{
+					choosings.add(nearest);
+				}
+				nearest.pickedMark.visible=!nearest.pickedMark.visible;
 			}else{
 				clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
 				for (i in 0 ... 20){

@@ -89,10 +89,11 @@ class Character extends FlxNestedSprite{
     mouseOverlappedMark.loadGraphic(AssetPaths.Cursor__png);
     add(mouseOverlappedMark);
     pickedMark=new FlxNestedSprite();
-    pickedMark.loadGraphic(AssetPaths.Cursor__png);
+    pickedMark.loadGraphic(AssetPaths.pickedMark__png);
     add(pickedMark);
     mouseOverlappedMark.visible=false;
     pickedMark.visible=false;
+
     fsm=new FlxFSM<Character>(this);
     fsm.transitions.add(Idle,Move,function(a){
       return !a.destinations.empty();
