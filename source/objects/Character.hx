@@ -112,9 +112,19 @@ class Character extends FlxNestedSprite{
       }
       return false;
     }).add(Idle,Chase,function(a){
-      return !attackTargets.empty();
+      if(!attackTargets.empty()){
+        FlxG.sound.play(AssetPaths.attack__wav,0.5);
+        emotion.emote("attack");        
+        return true;
+      }
+      return false;
     }).add(Move,Chase,function(a){
-      return !attackTargets.empty();
+      if(!attackTargets.empty()){
+        FlxG.sound.play(AssetPaths.attack__wav,0.5);
+        emotion.emote("attack");        
+        return true;
+      }
+      return false;
     }).add(Chase,Idle,function(a){
       return attackTargets.empty();
     }).add(Chase,Attack,function(a){
@@ -265,6 +275,7 @@ class Attack extends FlxFSMState<Character>{
         PlayState.particleEmitter.add(p);
       }
       PlayState.particleEmitter.start(true,0.02,4);
+      FlxG.sound.play(FlxG.random.getObject([AssetPaths.hit1__wav,AssetPaths.hit2__wav,AssetPaths.hit3__wav]));
       owner.attackTarget.health-=1;
       owner.attackTarget=null;
     }
