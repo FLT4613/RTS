@@ -1,6 +1,5 @@
 package objects;
 import flixel.FlxG;
-import flixel.FlxSprite;
 using Lambda;
 import flixel.util.FlxPath;
 import flixel.util.FlxColor;
@@ -58,13 +57,18 @@ class Character extends FlxNestedSprite{
 
 	public var pickedMark:FlxNestedSprite;
 
+  public var emotion:Emotion;
+
   override public function new(x:Float,y:Float,color:FlxColor):Void{
-    super();
+    super(x-width/2,y-height/2);
     path=new FlxPath();
     attackTargets=new Array();
     destinations=new Array<FlxPoint>();
     chasingRange=120;
     attackRange=25;
+    emotion=new Emotion(0,0);
+    emotion.kill();
+
     direction=Direction.UP;
     loadGraphic(AssetPaths.Character__png,true,32,32,true);
     animation.add("IdleUP"    ,[0],10,true);
@@ -82,7 +86,6 @@ class Character extends FlxNestedSprite{
     }
     setSize(11,15);
     offset.set(10,13);
-    setPosition(x-width/2,y-height/2);
     health=10;
 
     mouseOverlappedMark=new FlxNestedSprite();
@@ -94,11 +97,20 @@ class Character extends FlxNestedSprite{
     mouseOverlappedMark.visible=false;
     pickedMark.visible=false;
 
+    emotion.relativeX=8;
+    emotion.relativeY=-12;
+    add(emotion);
+
     fsm=new FlxFSM<Character>(this);
     fsm.transitions.add(Idle,Move,function(a){
       return !a.destinations.empty();
     }).add(Move,Idle,function(a){
-      return a.path.finished;
+      if(a.path.finished){
+        FlxG.sound.play(AssetPaths.question__wav,0.5);
+        emotion.emote("question");
+        return true;
+      }
+      return false;
     }).add(Idle,Chase,function(a){
       return !attackTargets.empty();
     }).add(Move,Chase,function(a){
@@ -114,7 +126,7 @@ class Character extends FlxNestedSprite{
 
     cursorSize=new FlxRect().fromTwoPoints(FlxPoint.weak(6,4),FlxPoint.weak(25,28));
 
-    FlxG.watch.add(fsm,"stateClass");
+    FlxG.watch.add(fsm,"stateClass"); 
   }
 
   override public function update(elapsed:Float):Void{
@@ -206,6 +218,7 @@ class Chase extends FlxFSMState<Character>{
       owner.stareAtPoint(path[0]);
       owner.path.start(path);
       owner.path.update(elapsed);
+      
     };
   }
 
