@@ -3,7 +3,6 @@ import flixel.FlxG;
 using Lambda;
 import flixel.util.FlxPath;
 import flixel.util.FlxColor;
-import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.util.FlxTimer;
 import objects.Direction;
@@ -48,18 +47,9 @@ class Character extends FlxNestedSprite{
    */
   public var fsm:FlxFSM<Character>;
 
-  /**
-   *  カーソル四方のL字の間隔
-   */
-  public var cursorSize:FlxRect;
-
-	public var mouseOverlappedMark:FlxNestedSprite;
-
-	public var pickedMark:FlxNestedSprite;
-
   public var emotion:Emotion;
 
-  override public function new(x:Float,y:Float,color:FlxColor):Void{
+  override public function new(x:Float,y:Float):Void{
     super(x-width/2,y-height/2);
     path=new FlxPath();
     attackTargets=new Array();
@@ -87,15 +77,6 @@ class Character extends FlxNestedSprite{
     setSize(11,15);
     offset.set(10,13);
     health=10;
-
-    mouseOverlappedMark=new FlxNestedSprite();
-    mouseOverlappedMark.loadGraphic(AssetPaths.Cursor__png);
-    add(mouseOverlappedMark);
-    pickedMark=new FlxNestedSprite();
-    pickedMark.loadGraphic(AssetPaths.pickedMark__png);
-    add(pickedMark);
-    mouseOverlappedMark.visible=false;
-    pickedMark.visible=false;
 
     emotion.relativeX=8;
     emotion.relativeY=-12;
@@ -134,9 +115,7 @@ class Character extends FlxNestedSprite{
       return animation.finished || !attackTarget.alive;
     }).start(Idle);
 
-    cursorSize=new FlxRect().fromTwoPoints(FlxPoint.weak(6,4),FlxPoint.weak(25,28));
-
-    FlxG.watch.add(fsm,"stateClass");
+    FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
   }
 
   override public function update(elapsed:Float):Void{
