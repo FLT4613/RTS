@@ -19,14 +19,9 @@ import objects.*;
 
 class PlayState extends FlxState{
 	/**
-	 * 味方キャラクターのオブジェクトプール
+	 * キャラクタープール
 	 */
-	var friendsSide:FlxTypedGroup<Character>;
-
-	/**
-	 * 敵キャラクターのオブジェクトプール
-	 */
-	var enemiesSide:FlxTypedGroup<Character>;
+	var characters:FlxTypedGroup<Character>;
 
 	/**
 	 * 選択範囲の矩形
@@ -51,7 +46,7 @@ class PlayState extends FlxState{
 	/**
 	 * 選んでるキャラクター
 	 */
-	var choosings:FlxTypedGroup<Character>;
+	var choosings:FlxTypedGroup<Friend>;
 
 	/**
 	 * 正方形グリッドの1辺の長さ
@@ -80,6 +75,7 @@ class PlayState extends FlxState{
 
 	override public function create():Void{
 		super.create();
+
 		field=new FlxTilemap();
 		field.loadMapFromCSV(AssetPaths.map__csv,AssetPaths.tiles__png,32);
 		// 地形描画領域の定義
@@ -105,19 +101,19 @@ class PlayState extends FlxState{
 			FlxSpriteUtil.drawLine(grid,0,i*gridSize,FlxG.width,i*gridSize);
 		}
 
+		characters=new FlxTypedGroup<Character>();
+
 		// 味方キャラクターの定義
-		friendsSide=new FlxTypedGroup<Character>();
 		for(i in 0...3){
-			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,FlxColor.BLUE);
-			friendsSide.add(character);
+			var character=new Friend(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y);
+			characters.add(character);
 		}
-		choosings=new FlxTypedGroup<Character>();
+		choosings=new FlxTypedGroup<Friend>();
 
 		// 敵キャラクターの定義
-		enemiesSide=new FlxTypedGroup<Character>();
 		for(i in 0...1){
-			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,FlxColor.RED);
-			enemiesSide.add(character);
+			var character=new Enemy(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y);
+			characters.add(character);
 		}
 
 		collisions=new FlxTypedGroup<Collision>();
@@ -138,8 +134,7 @@ class PlayState extends FlxState{
 		add(field);
 		add(grid);
 		add(ranges);
-		add(friendsSide);
-		add(enemiesSide);
+		add(characters);
 		add(collisions);
 		add(particleEmitter);
 		add(clickParticles);
@@ -150,35 +145,36 @@ class PlayState extends FlxState{
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
 		FlxSpriteUtil.fill(ranges, 0x00000000);
-		if(FlxG.debugger.visible){
-			FlxG.debugger.drawDebug=true;
-			friendsSide.forEachAlive(function(character:Character){
-				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x33FF0000);
-				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.attackRange,0x33FF0000);
-			});
-			enemiesSide.forEachAlive(function(character:Character){
-				FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
-			});
-			FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
-			FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
-		}else{
-			FlxG.debugger.drawDebug=false;
-		}
 
-		var nearest:Character=null;
-		friendsSide.forEachAlive(function(character){
-			character.mouseOverlappedMark.visible=false;
-			var distance=character.getMidpoint().distanceTo(FlxG.mouse.getPosition());
+		// if(FlxG.debugger.visible){
+		// 	FlxG.debugger.drawDebug=true;
+		// 	characters.forEachOfType(Friend,function(character){
+		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x33FF0000);
+		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.attackRange,0x33FF0000);
+		// 	});
+		// 	characters.forEachOfType(Enemy,function(character){
+		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
+		// 	});
+		// 	FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
+		// 	FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
+		// }else{
+		// 	FlxG.debugger.drawDebug=false;
+		// }
+
+		var nearest:Friend=null;
+		characters.forEachOfType(Friend,function(friend){
+			if(!friend.alive)return;
+			friend.mouseOverlappedMark.visible=false;
+			var distance=friend.getMidpoint().distanceTo(FlxG.mouse.getPosition());
 			if(distance>16)return;
 			if(nearest==null){
-				nearest=character;
+				nearest=friend;
 				return;
 			}
 			if(nearest.getMidpoint().distanceTo(FlxG.mouse.getPosition())>distance){
-				nearest=character;
+				nearest=friend;
 			}
 		});
-
 		if(nearest!=null){
 			nearest.mouseOverlappedMark.visible=true;
 		}
@@ -206,9 +202,9 @@ class PlayState extends FlxState{
 				}
 				clickParticles.start(true,0,10);
 				if(choosings.length>0){
-					choosings.forEachAlive(function(character){
-						character.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
-						if(!FlxG.keys.pressed.Z){character.pickedMark.visible=false;}
+					choosings.forEachAlive(function(choosing){
+						choosing.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
+						if(!FlxG.keys.pressed.Z){choosing.pickedMark.visible=false;}
 					});
 					if(!FlxG.keys.pressed.Z){
 						choosings.clear();
@@ -218,10 +214,10 @@ class PlayState extends FlxState{
 		}
 
 		if(FlxG.mouse.justPressedRight){
-			friendsSide.forEachAlive(function(character){
-				choosings.remove(character);
-				character.pickedMark.visible=false;
+			choosings.forEachAlive(function(choosing){
+				choosing.pickedMark.visible=false;
 			});
+			choosings.clear();
 		}
 
 		if(FlxG.mouse.pressed){
@@ -236,20 +232,22 @@ class PlayState extends FlxState{
 		}
 
 		if(FlxG.mouse.justReleased){
-			friendsSide.forEachAlive(function(character){
-				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
-					choosings.add(character);
-					character.pickedMark.visible=true;
+			characters.forEachOfType(Friend,function(friend){
+				if(!friend.alive)return;
+				if(selectedRange.clipRect.containsPoint(friend.getMidpoint())){
+					choosings.add(friend);
+					friend.pickedMark.visible=true;
 				}
 			});
 
 			selectedRange.kill();
 		}
-		charactersCommonSequence(friendsSide);
-		charactersCommonSequence(enemiesSide);
+		charactersCommonSequence(characters);
 
-		friendsSide.forEachAlive(function(friend:Character){
-			enemiesSide.forEachAlive(function(enemy:Character){
+		characters.forEachOfType(Friend,function(friend:Character){
+			if(!friend.alive)return;
+			characters.forEachOfType(Enemy,function(enemy:Character){
+				if(!enemy.alive)return;
 				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
 					friend.attackTargets.push(enemy);
 				}
