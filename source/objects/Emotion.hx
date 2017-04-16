@@ -1,6 +1,4 @@
 package objects;
-import flixel.FlxG;
-using Lambda;
 import flixel.util.FlxTimer;
 import flixel.addons.display.FlxNestedSprite;
 

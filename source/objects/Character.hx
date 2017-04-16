@@ -114,14 +114,14 @@ class Character extends FlxNestedSprite{
     }).add(Idle,Chase,function(a){
       if(!attackTargets.empty()){
         FlxG.sound.play(AssetPaths.attack__wav,0.5);
-        emotion.emote("attack");        
+        emotion.emote("attack");
         return true;
       }
       return false;
     }).add(Move,Chase,function(a){
       if(!attackTargets.empty()){
         FlxG.sound.play(AssetPaths.attack__wav,0.5);
-        emotion.emote("attack");        
+        emotion.emote("attack");
         return true;
       }
       return false;
@@ -132,11 +132,11 @@ class Character extends FlxNestedSprite{
       return attackTarget!=null;
     }).add(Attack,Chase,function(a){
       return animation.finished || !attackTarget.alive;
-    }).start(Idle); 
+    }).start(Idle);
 
     cursorSize=new FlxRect().fromTwoPoints(FlxPoint.weak(6,4),FlxPoint.weak(25,28));
 
-    FlxG.watch.add(fsm,"stateClass"); 
+    FlxG.watch.add(fsm,"stateClass");
   }
 
   override public function update(elapsed:Float):Void{
@@ -148,8 +148,8 @@ class Character extends FlxNestedSprite{
 
   /**
    * キャラクターを移動させる
-   @param   dest 目的地 
-   @param   keepChoice 選択状態を維持する(true) しない(false) 
+   @param   dest 目的地
+   @param   keepChoice 選択状態を維持する(true) しない(false)
    */
   public function moveStart(point:FlxPoint){
     destinations.push(point);
@@ -159,7 +159,7 @@ class Character extends FlxNestedSprite{
    * 攻撃が届く範囲にいるキャラクターのうち、最も近いものを返す
    * @return  攻撃が届く`Character` または `null`
    */
-  public function getAttackableTarget():Character{    
+  public function getAttackableTarget():Character{
     var min:Character=null;
     for(character in attackTargets.filter(function(a){
       return getMidpoint().distanceTo(a.getMidpoint())<attackRange;
@@ -175,7 +175,7 @@ class Character extends FlxNestedSprite{
 
   /**
    * フィールドマップ上のある一点に相対するよう向きを変える
-   * 
+   *
    * ただし、その点と重なっている場合は、方向を変えない
    * @param point 目標座標
    * @return 向いた方向
@@ -204,7 +204,7 @@ class Move extends FlxFSMState<Character>{
     var path=PlayState.field.findPath(owner.getMidpoint(),owner.destinations.shift());
     owner.path.start(path);
   }
-  
+
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     owner.animation.play("Move"+Std.string(owner.direction));
     owner.stareAtPoint(owner.path.nodes[owner.path.nodeIndex]);
@@ -218,9 +218,9 @@ class Move extends FlxFSMState<Character>{
 
 class Chase extends FlxFSMState<Character>{
   override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    
+
   }
-  
+
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     if(!owner.attackTargets.empty()){
       owner.animation.play("Move"+Std.string(owner.direction));
@@ -228,7 +228,7 @@ class Chase extends FlxFSMState<Character>{
       owner.stareAtPoint(path[0]);
       owner.path.start(path);
       owner.path.update(elapsed);
-      
+
     };
   }
 
@@ -242,7 +242,7 @@ class Attack extends FlxFSMState<Character>{
    *  攻撃間隔
    */
   public var attackInterval:FlxTimer;
-  
+
   override public function new(elapsed:Float){
     super();
     attackInterval=new FlxTimer();
@@ -254,7 +254,7 @@ class Attack extends FlxFSMState<Character>{
     owner.animation.play("Attack"+Std.string(owner.direction));
     owner.animation.pause();
   }
-  
+
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     if(attackInterval.finished)owner.animation.resume();
     if(owner.animation.finished){

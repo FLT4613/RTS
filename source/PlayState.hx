@@ -59,7 +59,7 @@ class PlayState extends FlxState{
 	public var gridSize(default,null)=32;
 
 	/**
-	 * 地形 
+	 * 地形
 	 */
 	public static var field:FlxTilemap;
 
@@ -104,7 +104,7 @@ class PlayState extends FlxState{
 		for(i in 0...Std.int(FlxG.height/gridSize)+1){
 			FlxSpriteUtil.drawLine(grid,0,i*gridSize,FlxG.width,i*gridSize);
 		}
-		
+
 		// 味方キャラクターの定義
 		friendsSide=new FlxTypedGroup<Character>();
 		for(i in 0...3){
@@ -126,7 +126,7 @@ class PlayState extends FlxState{
 		selectedRange=new FlxSprite(0,0);
 		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
 		selectedRange.kill();
-	
+
 		particleEmitter = new FlxEmitter(0, 0);
 		clickParticles = new FlxEmitter(0, 0);
 
@@ -204,7 +204,7 @@ class PlayState extends FlxState{
 					p.exists=false;
 					clickParticles.add(p);
 				}
-				clickParticles.start(true,0,10);			
+				clickParticles.start(true,0,10);
 				if(choosings.length>0){
 					choosings.forEachAlive(function(character){
 						character.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
@@ -221,7 +221,7 @@ class PlayState extends FlxState{
 			friendsSide.forEachAlive(function(character){
 				choosings.remove(character);
 				character.pickedMark.visible=false;
-			});			
+			});
 		}
 
 		if(FlxG.mouse.pressed){
@@ -235,7 +235,7 @@ class PlayState extends FlxState{
 			}
 		}
 
-		if(FlxG.mouse.justReleased){			
+		if(FlxG.mouse.justReleased){
 			friendsSide.forEachAlive(function(character){
 				if(selectedRange.clipRect.containsPoint(character.getMidpoint())){
 					choosings.add(character);
@@ -243,7 +243,7 @@ class PlayState extends FlxState{
 				}
 			});
 
-			selectedRange.kill();	
+			selectedRange.kill();
 		}
 		charactersCommonSequence(friendsSide);
 		charactersCommonSequence(enemiesSide);
