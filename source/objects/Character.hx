@@ -113,15 +113,21 @@ class Character extends FlxNestedSprite{
       return attackTarget!=null;
     }).add(Attack,Chase,function(a){
       return animation.finished || !attackTarget.alive;
+    }).add(Attack,Dead,function(a){
+      return health<=0;
+    }).add(Chase,Dead,function(a){
+      return health<=0;
+    }).add(Idle,Dead,function(a){
+      return health<=0;
+    }).add(Dead,Idle,function(a){
+      return alive;
     }).start(Idle);
-
     FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
   }
 
   override public function update(elapsed:Float):Void{
     fsm.update(elapsed);
     super.update(elapsed);
-    if(health<1)kill();
     attackTargets=[];
   }
 
@@ -262,5 +268,34 @@ class Attack extends FlxFSMState<Character>{
 
   override public function exit(owner:Character){
 
+  }
+}
+
+class Dead extends FlxFSMState<Character>{
+  override public function enter(owner:Character,fsm:FlxFSM<Character>){
+    PlayState.particleEmitter.focusOn(owner);
+    PlayState.particleEmitter.alpha.set(0,0,255);
+    PlayState.particleEmitter.speed.set(60);
+    PlayState.particleEmitter.lifespan.set(0.2);
+    for (i in 0 ... 10){
+      var p = new FlxParticle();
+      p.makeGraphic(2,2,FlxColor.YELLOW);
+      p.exists = false;
+      PlayState.particleEmitter.add(p);
+    }
+    PlayState.particleEmitter.start(true,0.02,4);
+    owner.kill();
+  }
+
+  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
+  }
+
+  override public function exit(owner:Character){
+    owner.health=10;
+    owner.path.cancel();
+    owner.attackTargets=[];
+    owner.destinations=[];
+    owner.attackTarget=null;
+    owner.direction=Direction.UP;
   }
 }
