@@ -256,6 +256,19 @@ class PlayState extends FlxState{
 				}
 			});
 		});
+
+		if(FlxG.keys.justPressed.ONE){
+			var friend=characters.recycle(Friend,Friend.new.bind(FlxG.mouse.x,FlxG.mouse.y));
+			friend.revive();
+			friend.setPosition(FlxG.mouse.x,FlxG.mouse.y);
+			characters.add(friend);
+		}
+		if(FlxG.keys.justPressed.TWO){
+			var enemy=characters.recycle(Enemy,Enemy.new.bind(FlxG.mouse.x,FlxG.mouse.y));
+			enemy.setPosition(FlxG.mouse.x,FlxG.mouse.y);
+			enemy.revive();
+			characters.add(enemy);
+		}
 	}
 
 	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
