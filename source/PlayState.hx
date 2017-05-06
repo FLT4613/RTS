@@ -146,7 +146,7 @@ class PlayState extends FlxState{
 		super.update(elapsed);
 		FlxSpriteUtil.fill(ranges, 0x00000000);
 
-		// if(FlxG.debugger.visible){
+		if(FlxG.debugger.visible){
 		// 	FlxG.debugger.drawDebug=true;
 		// 	characters.forEachOfType(Friend,function(character){
 		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x33FF0000);
@@ -155,9 +155,10 @@ class PlayState extends FlxState{
 		// 	characters.forEachOfType(Enemy,function(character){
 		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
 		// 	});
-		// 	FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
-		// 	FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
-		// }else{
+			FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
+			FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
+		}
+		// else{
 		// 	FlxG.debugger.drawDebug=false;
 		// }
 
@@ -194,7 +195,7 @@ class PlayState extends FlxState{
 				nearest.pickedMark.visible=!nearest.pickedMark.visible;
 			}else{
 				clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
-				for (i in 0 ... 20){
+				for (i in 0 ... 10){
 					var p = new FlxParticle();
 					p.makeGraphic(5,5,FlxColor.WHITE);
 					p.exists=false;
@@ -245,9 +246,9 @@ class PlayState extends FlxState{
 		charactersCommonSequence(characters);
 
 		characters.forEachOfType(Friend,function(friend:Character){
-			if(!friend.alive)return;
+			if(friend.fsm.stateClass==objects.Character.Dead)return;
 			characters.forEachOfType(Enemy,function(enemy:Character){
-				if(!enemy.alive)return;
+				if(enemy.fsm.stateClass==objects.Character.Dead)return;
 				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
 					friend.attackTargets.push(enemy);
 				}
@@ -285,7 +286,7 @@ class PlayState extends FlxState{
 		});
 		characterPool.forEachAlive(function(character:Character){
 			var index=field.getTileIndexByCoords(character.getMidpoint());
-			if(character.fsm.stateClass==objects.Character.Idle){
+			if(!character.path.active && character.destinations.empty()){
 				if(characterPositions.exists(index)){
 					if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
 					overlappings.get(index).push(character);

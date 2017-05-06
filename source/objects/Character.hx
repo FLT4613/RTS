@@ -2,11 +2,10 @@ package objects;
 import flixel.FlxG;
 using Lambda;
 import flixel.util.FlxPath;
-import flixel.util.FlxColor;
 import flixel.math.FlxPoint;
 import flixel.util.FlxTimer;
+import flixel.tweens.FlxTween;
 import objects.Direction;
-import flixel.effects.particles.FlxParticle;
 import flixel.addons.util.FlxFSM;
 import flixel.addons.display.FlxNestedSprite;
 
@@ -49,6 +48,8 @@ class Character extends FlxNestedSprite{
 
   public var emotion:Emotion;
 
+  public var tween:FlxTween;
+
   override public function new(x:Float,y:Float):Void{
     super(x-width/2,y-height/2);
     path=new FlxPath();
@@ -74,32 +75,28 @@ class Character extends FlxNestedSprite{
       animation.add("Attack"+directionStr,[0+motionIndex,1+motionIndex,2+motionIndex,3+motionIndex],10,false);
       motionIndex+=4;
     }
+    animation.add("DeadRIGHT",[32]);
+    animation.add("DeadLEFT",[33]);
     setSize(11,15);
     offset.set(10,13);
-    health=10;
 
     emotion.relativeX=8;
     emotion.relativeY=-12;
     add(emotion);
 
     fsm=new FlxFSM<Character>(this);
-    fsm.transitions.add(Idle,Move,function(a){
-      return !a.destinations.empty();
-    }).add(Move,Idle,function(a){
-      if(a.path.finished){
-        FlxG.sound.play(AssetPaths.question__wav,0.5);
-        emotion.emote("question");
-        return true;
-      }
-      return false;
-    }).add(Idle,Chase,function(a){
-      if(!attackTargets.empty()){
-        FlxG.sound.play(AssetPaths.attack__wav,0.5);
-        emotion.emote("attack");
-        return true;
-      }
-      return false;
-    }).add(Move,Chase,function(a){
+    var finishPoint=FlxPoint.weak(x+FlxG.random.float(-100,100),y+FlxG.random.float(-10,10));
+    var topPoint=FlxPoint.weak((x+finishPoint.x)/2,y+FlxG.random.float(-100,-50));
+
+    tween=FlxTween.quadMotion(this,x,y,topPoint.x,topPoint.y,finishPoint.x,finishPoint.y,1,true);
+    tween.cancel();
+    var knockBackCondition=function(character:Character){
+      return !character.tween.finished;
+    }
+    var deadCondition=function(a){
+      return health<=0;
+    }
+    fsm.transitions.add(Idle,Chase,function(a){
       if(!attackTargets.empty()){
         FlxG.sound.play(AssetPaths.attack__wav,0.5);
         emotion.emote("attack");
@@ -113,16 +110,21 @@ class Character extends FlxNestedSprite{
       return attackTarget!=null;
     }).add(Attack,Chase,function(a){
       return animation.finished || !attackTarget.alive;
-    }).add(Attack,Dead,function(a){
-      return health<=0;
-    }).add(Chase,Dead,function(a){
-      return health<=0;
-    }).add(Idle,Dead,function(a){
-      return health<=0;
-    }).add(Dead,Idle,function(a){
-      return alive;
-    }).start(Idle);
+    })
+    .add(Attack,Dead,deadCondition)
+    .add(Chase,Dead,deadCondition)
+    .add(Idle,Dead,deadCondition)
+    .add(Dead,Idle,function(a){
+      return health>0;
+    }).add(Idle,KnockBack,knockBackCondition)
+    .add(Chase,KnockBack,knockBackCondition)
+    .add(Attack,KnockBack,knockBackCondition)
+    .add(KnockBack,Idle,function(a){return tween.finished && attackTargets.empty();})
+    .add(KnockBack,Chase,function(a){return tween.finished && !attackTargets.empty();})
+    .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
+    .start(Idle);
     FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
+    initialize();
   }
 
   override public function update(elapsed:Float):Void{
@@ -176,24 +178,65 @@ class Character extends FlxNestedSprite{
     }
     return direction;
   }
+
+  /**
+   *  ゲーム中に増減する数値を初期化する
+   */
+  public function initialize(){
+    health=10;
+    path.cancel();
+    attackTargets=[];
+    destinations=[];
+    attackTarget=null;
+    direction=Direction.DOWN;
+  }
+
+  override public function revive(){
+    super.revive();
+    initialize();
+  }
+
+  /**
+   *  ノックバックさせる ノックバック中は状態遷移が無効になる。
+   */
+  public function knockBack(){
+    var finishPoint=FlxPoint.weak(x+FlxG.random.float(-100,100),y+FlxG.random.float(-10,10));
+    var topPoint=FlxPoint.weak((x+finishPoint.x)/2,y+FlxG.random.float(-100,-50));
+    tween=FlxTween.quadMotion(this,x,y,topPoint.x,topPoint.y,finishPoint.x,finishPoint.y,1,true);
+  }
+}
+
+class KnockBack extends FlxFSMState<Character>{
+  override public function enter(owner:Character,fsm:FlxFSM<Character>){
+    owner.animation.play("DeadLEFT");
+  }
+
+  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
+
+  }
+
+  override public function exit(owner:Character){
+
+  }
 }
 
 class Idle extends FlxFSMState<Character>{
   override public function enter(owner:Character,fsm:FlxFSM<Character>){
     owner.animation.play("Idle"+Std.string(owner.direction));
   }
-}
-
-class Move extends FlxFSMState<Character>{
-  override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    var path=PlayState.field.findPath(owner.getMidpoint(),owner.destinations.shift());
-    owner.path.start(path);
-  }
 
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-    owner.animation.play("Move"+Std.string(owner.direction));
-    owner.stareAtPoint(owner.path.nodes[owner.path.nodeIndex]);
-    owner.path.update(elapsed);
+    if(!owner.destinations.empty() && owner.path.finished){
+      var path=PlayState.field.findPath(owner.getMidpoint(),owner.destinations.shift());
+      owner.path.start(path);
+    }
+    if(owner.path.active){
+      owner.path.update(elapsed);
+      owner.animation.play("Move"+Std.string(owner.direction));
+      owner.stareAtPoint(owner.path.nodes[owner.path.nodeIndex]);
+    }else{
+      owner.animation.play("Idle"+Std.string(owner.direction),true);
+    }
   }
 
   override public function exit(owner:Character){
@@ -202,18 +245,13 @@ class Move extends FlxFSMState<Character>{
 }
 
 class Chase extends FlxFSMState<Character>{
-  override public function enter(owner:Character,fsm:FlxFSM<Character>){
-
-  }
-
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     if(!owner.attackTargets.empty()){
       owner.animation.play("Move"+Std.string(owner.direction));
       var path=PlayState.field.findPath(owner.getMidpoint(),owner.attackTargets[0].getMidpoint());
-      owner.stareAtPoint(path[0]);
+      if(path!=null)owner.stareAtPoint(path[0]);
       owner.path.start(path);
       owner.path.update(elapsed);
-
     };
   }
 
@@ -228,7 +266,7 @@ class Attack extends FlxFSMState<Character>{
    */
   public var attackInterval:FlxTimer;
 
-  override public function new(elapsed:Float){
+  override public function new(){
     super();
     attackInterval=new FlxTimer();
   }
@@ -243,59 +281,18 @@ class Attack extends FlxFSMState<Character>{
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
     if(attackInterval.finished)owner.animation.resume();
     if(owner.animation.finished){
-      PlayState.makeCollision().configure(
-        owner.attackTarget.getMidpoint().x,
-        owner.attackTarget.getMidpoint().y,
-        function(character:Character){
-          // FlxSpriteUtil.flicker(character,0.5);
-        },objects.Collision.ColliderType.ONCE);
-      PlayState.particleEmitter.focusOn(owner);
-      PlayState.particleEmitter.alpha.set(0,0,255);
-      PlayState.particleEmitter.speed.set(60);
-      PlayState.particleEmitter.lifespan.set(0.2);
-      for (i in 0 ... 10){
-        var p = new FlxParticle();
-        p.makeGraphic(2,2,FlxColor.YELLOW);
-        p.exists = false;
-        PlayState.particleEmitter.add(p);
+      if(owner.attackTarget.tween.finished){
+        FlxG.sound.play(FlxG.random.getObject([AssetPaths.hit1__wav,AssetPaths.hit2__wav,AssetPaths.hit3__wav]));
+        owner.attackTarget.health-=1;
+        owner.attackTarget.knockBack();
       }
-      PlayState.particleEmitter.start(true,0.02,4);
-      FlxG.sound.play(FlxG.random.getObject([AssetPaths.hit1__wav,AssetPaths.hit2__wav,AssetPaths.hit3__wav]));
-      owner.attackTarget.health-=1;
       owner.attackTarget=null;
     }
-  }
-
-  override public function exit(owner:Character){
-
   }
 }
 
 class Dead extends FlxFSMState<Character>{
   override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    PlayState.particleEmitter.focusOn(owner);
-    PlayState.particleEmitter.alpha.set(0,0,255);
-    PlayState.particleEmitter.speed.set(60);
-    PlayState.particleEmitter.lifespan.set(0.2);
-    for (i in 0 ... 10){
-      var p = new FlxParticle();
-      p.makeGraphic(2,2,FlxColor.YELLOW);
-      p.exists = false;
-      PlayState.particleEmitter.add(p);
-    }
-    PlayState.particleEmitter.start(true,0.02,4);
     owner.kill();
-  }
-
-  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-  }
-
-  override public function exit(owner:Character){
-    owner.health=10;
-    owner.path.cancel();
-    owner.attackTargets=[];
-    owner.destinations=[];
-    owner.attackTarget=null;
-    owner.direction=Direction.UP;
   }
 }
