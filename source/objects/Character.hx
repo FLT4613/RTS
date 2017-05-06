@@ -6,6 +6,7 @@ import flixel.math.FlxPoint;
 import flixel.util.FlxTimer;
 import flixel.tweens.FlxTween;
 import objects.Direction;
+using flixel.util.FlxSpriteUtil;
 import flixel.addons.util.FlxFSM;
 import flixel.addons.display.FlxNestedSprite;
 
@@ -50,6 +51,8 @@ class Character extends FlxNestedSprite{
 
   public var tween:FlxTween;
 
+  public var shadow:FlxNestedSprite;
+
   override public function new(x:Float,y:Float):Void{
     super(x-width/2,y-height/2);
     path=new FlxPath();
@@ -59,6 +62,12 @@ class Character extends FlxNestedSprite{
     attackRange=25;
     emotion=new Emotion(0,0);
     emotion.kill();
+
+    shadow=new FlxNestedSprite();
+    shadow.makeGraphic(32,32,0x00000000).drawEllipse(0,0,14,6,0x33000000);
+    shadow.relativeX=9;
+    shadow.relativeY=24;
+    add(shadow);
 
     direction=Direction.UP;
     loadGraphic(AssetPaths.Character__png,true,32,32,true);
@@ -123,6 +132,8 @@ class Character extends FlxNestedSprite{
     .add(KnockBack,Chase,function(a){return tween.finished && !attackTargets.empty();})
     .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
     .start(Idle);
+
+
     FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
     initialize();
   }
