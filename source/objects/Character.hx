@@ -295,7 +295,7 @@ class Attack extends FlxFSMState<Character>{
       if(owner.attackTarget.tween.finished){
         FlxG.sound.play(FlxG.random.getObject([AssetPaths.hit1__wav,AssetPaths.hit2__wav,AssetPaths.hit3__wav]));
         owner.attackTarget.health-=1;
-        owner.attackTarget.knockBack();
+        // owner.attackTarget.knockBack();
       }
       owner.attackTarget=null;
     }
