@@ -47,10 +47,19 @@ class Character extends FlxNestedSprite{
    */
   public var fsm:FlxFSM<Character>;
 
+  /**
+   *  感情アイコン
+   */
   public var emotion:Emotion;
 
+  /**
+   *  トゥイーン
+   */
   public var tween:FlxTween;
 
+  /**
+   *  影
+   */
   public var shadow:FlxNestedSprite;
 
   override public function new(x:Float,y:Float):Void{
