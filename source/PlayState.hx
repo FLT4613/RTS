@@ -15,13 +15,14 @@ import flixel.group.FlxGroup;
 import flixel.tile.FlxTilemap;
 import flixel.effects.particles.FlxEmitter;
 import flixel.effects.particles.FlxParticle;
+using flixel.input.mouse.FlxMouseEventManager;
 import objects.*;
 
 class PlayState extends FlxState{
 	/**
 	 * キャラクタープール
 	 */
-	var characters:FlxTypedGroup<Character>;
+	static var characters:FlxTypedGroup<Character>;
 
 	/**
 	 * 選択範囲の矩形
@@ -47,6 +48,11 @@ class PlayState extends FlxState{
 	 * 選んでるキャラクター
 	 */
 	var choosings:FlxTypedGroup<Friend>;
+
+	/**
+	 * 選んでるキャラクター
+	 */
+	var buildings:FlxTypedGroup<Building>;
 
 	/**
 	 * 正方形グリッドの1辺の長さ
@@ -100,6 +106,11 @@ class PlayState extends FlxState{
 		for(i in 0...Std.int(FlxG.height/gridSize)+1){
 			FlxSpriteUtil.drawLine(grid,0,i*gridSize,FlxG.width,i*gridSize);
 		}
+		FlxG.plugins.add(new FlxMouseEventManager());
+		var building=new Building(30,30);
+		buildings=new FlxTypedGroup();
+		buildings.add(building);
+
 
 		characters=new FlxTypedGroup<Character>();
 
@@ -132,6 +143,7 @@ class PlayState extends FlxState{
 
 		// 下位レイヤから加える
 		add(field);
+		add(buildings);
 		add(grid);
 		add(ranges);
 		add(characters);
@@ -259,10 +271,11 @@ class PlayState extends FlxState{
 		});
 
 		if(FlxG.keys.justPressed.ONE){
-			var friend=characters.recycle(Friend,Friend.new.bind(FlxG.mouse.x,FlxG.mouse.y));
-			friend.revive();
-			friend.setPosition(FlxG.mouse.x,FlxG.mouse.y);
-			characters.add(friend);
+			spawnCharacter(Friend,FlxG.mouse.x,FlxG.mouse.y);
+			// var friend=characters.recycle(Friend,Friend.new.bind(FlxG.mouse.x,FlxG.mouse.y));
+			// friend.revive();
+			// friend.setPosition(FlxG.mouse.x,FlxG.mouse.y);
+			// characters.add(friend);
 		}
 		if(FlxG.keys.justPressed.TWO){
 			var enemy=characters.recycle(Enemy,Enemy.new.bind(FlxG.mouse.x,FlxG.mouse.y));
@@ -330,5 +343,11 @@ class PlayState extends FlxState{
 
 	public static function makeCollision():Collision{
 		return collisions.recycle(Collision,Collision.new);
+	}
+
+	public static function spawnCharacter(type:Class<FlxSprite>,x:Float,y:Float){
+			var character=characters.recycle(Friend,Friend.new.bind(x,y));
+			character.revive();
+			characters.add(character);
 	}
 }
