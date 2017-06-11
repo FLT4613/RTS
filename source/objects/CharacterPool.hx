@@ -5,7 +5,7 @@ using Lambda;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.group.FlxGroup;
-import flixel.tile.FlxTilemap;
+import flixel.math.FlxPoint;
 
 import objects.*;
 
@@ -84,9 +84,19 @@ class CharacterPool extends FlxTypedGroup<Character>{
 			}
 			member.shift();
 			member.iter(function(character:Character){
-				trace("Here is "+PlayState.field.getTileIndexByCoords(character.getMidpoint())+". Go to :"+route);
 				character.moveStart(PlayState.field.getTileCoordsByIndex(route,true));
 			});
   	}
+	}
+
+	// FlxPointに最も近いCharacterを返す
+	public function getClosest(point:FlxPoint):Character{
+		var closer=positions.get(PlayState.field.getTileIndexByCoords(point));
+		if(closer==null)return null;
+		if(closer.length==1)return closer[0];
+		closer.sort(function(c1,c2){
+			return cast(c2.getMidpoint().distanceTo(point)-c1.getMidpoint().distanceTo(point),Int);
+		});
+		return closer[0];
 	}
 }
