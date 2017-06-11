@@ -159,6 +159,9 @@ class Character extends FlxNestedSprite{
    @param   keepChoice 選択状態を維持する(true) しない(false)
    */
   public function moveStart(point:FlxPoint){
+    if(destinations.length>1){
+      if(destinations[destinations.length-1].equals(point))return;
+    }
     destinations.push(point);
   }
 
