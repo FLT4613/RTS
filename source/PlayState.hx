@@ -16,13 +16,14 @@ import flixel.tile.FlxTilemap;
 import flixel.effects.particles.FlxEmitter;
 import flixel.effects.particles.FlxParticle;
 using flixel.input.mouse.FlxMouseEventManager;
+
 import objects.*;
 
 class PlayState extends FlxState{
 	/**
 	 * キャラクタープール
 	 */
-	static var characters:FlxTypedGroup<Character>;
+	static var characters:CharacterPool;
 
 	/**
 	 * 選択範囲の矩形
@@ -50,14 +51,15 @@ class PlayState extends FlxState{
 	var choosings:FlxTypedGroup<Friend>;
 
 	/**
-	 * 選んでるキャラクター
+	 * 建物
 	 */
-	var buildings:FlxTypedGroup<Building>;
+	static var buildings:FlxTypedGroup<Building>;
 
 	/**
 	 * 正方形グリッドの1辺の長さ
 	 */
-	public var gridSize(default,null)=32;
+	public static var gridSize(default,null)=32;
+
 
 	/**
 	 * 地形
@@ -92,27 +94,15 @@ class PlayState extends FlxState{
 		field.setTileProperties(4,FlxObject.ANY);
 		field.setTileProperties(5,FlxObject.ANY);
 
-		grid=new FlxSprite(0,0);
-		grid.makeGraphic(FlxG.width,FlxG.height,0x00000000,true);
 
 		ranges=new FlxSprite(0,0);
 		ranges.makeGraphic(FlxG.width,FlxG.height,0x00000000,true);
 
-		// グリッド縦ライン
-		for(i in 0...Std.int(FlxG.width/gridSize)+1){
-			FlxSpriteUtil.drawLine(grid,i*gridSize,0,i*gridSize,FlxG.height);
-		}
-		// グリッド横ライン
-		for(i in 0...Std.int(FlxG.height/gridSize)+1){
-			FlxSpriteUtil.drawLine(grid,0,i*gridSize,FlxG.width,i*gridSize);
-		}
+
 		FlxG.plugins.add(new FlxMouseEventManager());
-		var building=new Building(30,30);
 		buildings=new FlxTypedGroup();
-		buildings.add(building);
 
-
-		characters=new FlxTypedGroup<Character>();
+		characters=new CharacterPool();
 
 		// 味方キャラクターの定義
 		for(i in 0...3){
@@ -159,20 +149,9 @@ class PlayState extends FlxState{
 		FlxSpriteUtil.fill(ranges, 0x00000000);
 
 		if(FlxG.debugger.visible){
-		// 	FlxG.debugger.drawDebug=true;
-		// 	characters.forEachOfType(Friend,function(character){
-		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x33FF0000);
-		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.attackRange,0x33FF0000);
-		// 	});
-		// 	characters.forEachOfType(Enemy,function(character){
-		// 		FlxSpriteUtil.drawCircle(ranges,character.getMidpoint().x,character.getMidpoint().y,character.chasingRange,0x550000EE);
-		// 	});
 			FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
 			FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		}
-		// else{
-		// 	FlxG.debugger.drawDebug=false;
-		// }
 
 		var nearest:Friend=null;
 		characters.forEachOfType(Friend,function(friend){
@@ -255,7 +234,6 @@ class PlayState extends FlxState{
 
 			selectedRange.kill();
 		}
-		charactersCommonSequence(characters);
 
 		characters.forEachOfType(Friend,function(friend:Character){
 			if(friend.fsm.stateClass==objects.Character.Dead)return;
@@ -272,82 +250,31 @@ class PlayState extends FlxState{
 
 		if(FlxG.keys.justPressed.ONE){
 			spawnCharacter(Friend,FlxG.mouse.x,FlxG.mouse.y);
-			// var friend=characters.recycle(Friend,Friend.new.bind(FlxG.mouse.x,FlxG.mouse.y));
-			// friend.revive();
-			// friend.setPosition(FlxG.mouse.x,FlxG.mouse.y);
-			// characters.add(friend);
 		}
+
 		if(FlxG.keys.justPressed.TWO){
-			var enemy=characters.recycle(Enemy,Enemy.new.bind(FlxG.mouse.x,FlxG.mouse.y));
-			enemy.setPosition(FlxG.mouse.x,FlxG.mouse.y);
-			enemy.revive();
-			characters.add(enemy);
+			spawnCharacter(Enemy,FlxG.mouse.x,FlxG.mouse.y);
+		}
+
+		if(FlxG.keys.justPressed.THREE){
+			spawnBuilding(FlxG.mouse.x,FlxG.mouse.y);
 		}
 	}
 
-	public function charactersCommonSequence(characterPool:FlxTypedGroup<Character>){
-	  var characterPositions=new Map<Int,Character>();
-		var overlappings=new Map<Int,Array<Character>>();
-
-		// キャラクターの表示順序の設定
-		characterPool.members.sort(function(a,b){
-			return Std.int(a.y-b.y);
-		});
-
-		FlxG.overlap(characterPool,collisions,function(character:Character,collision:Collision){
-			collision.onHitCallback(character);
-		});
-		characterPool.forEachAlive(function(character:Character){
-			var index=field.getTileIndexByCoords(character.getMidpoint());
-			if(!character.path.active && character.destinations.empty()){
-				if(characterPositions.exists(index)){
-					if(!overlappings.exists(index))overlappings.set(index,new Array<Character>());
-					overlappings.get(index).push(character);
-				}else{
-					characterPositions.set(index,character);
-				}
-			}
-		});
-
-		for(overlapPoint in overlappings.keys()){
-			var tileCoord=field.getTileCoordsByIndex(overlapPoint,true);
-			var criteria=characterPositions.get(overlapPoint).direction;
-			var passableIndexes=new Array<Int>();
-			for(direction in [criteria.clockwise().clockwise(),criteria,criteria.antiClockwise().antiClockwise(),criteria.reverse()]){
-				var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
-				if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
-					passableIndexes.push(checkingPoint);
-				}
-			}
-			if(passableIndexes.empty()){
-				continue;
-			}
-			var route=passableIndexes.find(function(index:Int){
-				return !characterPositions.exists(index);
-			});
-			if(route==null){
-				var representDir=overlappings.get(overlapPoint)[0].direction;
-				for(direction in [representDir.clockwise().clockwise(),representDir,representDir.antiClockwise().antiClockwise(),representDir.reverse()]){
-					var checkingPoint=field.getTileIndexByCoords(direction.toVector().scale(gridSize).addPoint(tileCoord));
-					if(field.getTileCollisions((field.getTileByIndex(checkingPoint)))==FlxObject.NONE){
-						route=checkingPoint;
-						break;
-					}
-				}
-			}
-			overlappings.get(overlapPoint).iter(function(character:Character){
-				character.moveStart(field.getTileCoordsByIndex(route,true));
-			});
-		}
-	}
 
 	public static function makeCollision():Collision{
 		return collisions.recycle(Collision,Collision.new);
 	}
 
-	public static function spawnCharacter(type:Class<FlxSprite>,x:Float,y:Float){
-			var character=characters.recycle(Friend,Friend.new.bind(x,y));
+	public static function spawnCharacter(type:Class<Character>,x:Float,y:Float){
+			var character=characters.recycle(type,Friend.new.bind(x,y));
 			character.revive();
 			characters.add(character);
+	}
+
+	public static function spawnBuilding(x:Float,y:Float){
+			var building=buildings.recycle(Building.new.bind(x,y));
+			building.revive();
+			buildings.add(building);
 	}
 }
