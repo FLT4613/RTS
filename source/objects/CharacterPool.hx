@@ -89,14 +89,18 @@ class CharacterPool extends FlxTypedGroup<Character>{
   	}
 	}
 
-	// FlxPointに最も近いCharacterを返す
-	public function getClosest(point:FlxPoint):Character{
-		var closer=positions.get(PlayState.field.getTileIndexByCoords(point));
-		if(closer==null)return null;
-		if(closer.length==1)return closer[0];
-		closer.sort(function(c1,c2){
-			return cast(c2.getMidpoint().distanceTo(point)-c1.getMidpoint().distanceTo(point),Int);
-		});
-		return closer[0];
+	/**
+	 * `point`から`range`px内のCharacterを配列で返却
+	 *
+	 * Array[0]は、`point`から最も近いCharacter、以降距離順に並ぶ
+	 *
+	 * @param   point 始点
+	 * @param   range 距離
+	 * @return  `range`内に存在するCharacterの配列
+	 */
+	public function getCharactersWithIn(point:FlxPoint,range:Float):Array<Character>{
+		var withIn=members.filter(function(c){return c.getMidpoint().distanceTo(point)<range;});
+		withIn.sort(function(a,b){return cast(a.getMidpoint().distanceTo(point)-b.getMidpoint().distanceTo(point),Int);});
+		return withIn;
 	}
 }
