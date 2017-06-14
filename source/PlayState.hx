@@ -18,6 +18,7 @@ import flixel.effects.particles.FlxParticle;
 using flixel.input.mouse.FlxMouseEventManager;
 
 import objects.*;
+import ui.*;
 
 class PlayState extends FlxState{
 	/**
@@ -34,11 +35,6 @@ class PlayState extends FlxState{
 	 * 選択範囲の始点
 	 */
 	var selectedRangeStartPos:FlxPoint;
-
-	/**
-	 * グリッド描画領域
-	 */
-	var grid:FlxSprite;
 
 	/**
 	 * 範囲の描画領域
@@ -60,6 +56,10 @@ class PlayState extends FlxState{
 	 */
 	public static var gridSize(default,null)=32;
 
+	/**
+	 *  UI
+	 */
+	public var ui:UI;
 
 	/**
 	 * 地形
@@ -98,6 +98,7 @@ class PlayState extends FlxState{
 		ranges=new FlxSprite(0,0);
 		ranges.makeGraphic(FlxG.width,FlxG.height,0x00000000,true);
 
+		ui=new UI();
 
 		FlxG.plugins.add(new FlxMouseEventManager());
 		buildings=new FlxTypedGroup();
@@ -134,8 +135,8 @@ class PlayState extends FlxState{
 		// 下位レイヤから加える
 		add(field);
 		add(buildings);
-		add(grid);
 		add(ranges);
+		add(ui);
 		add(characters);
 		add(collisions);
 		add(particleEmitter);
