@@ -13,7 +13,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
   var positions:Map<Int,Array<Character>>;
 
   override public function new(){
-    super();
+	  super();
     positions=new Map<Int,Array<Character>>();
   }
 
@@ -22,13 +22,9 @@ class CharacterPool extends FlxTypedGroup<Character>{
 		members.sort(function(a,b){
 			return Std.int(a.y-b.y);
 		});
+
 		updatePositions();
 		avoidSymbolsOverlap();
-  }
-
-  // 近接するシンボルを算出・通知する
-  private function notifyNearSymbols(){
-
   }
 
 	private function updatePositions(){
@@ -42,6 +38,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 			}
 		});
 	}
+
 
   private function avoidSymbolsOverlap(){
 		var overlappings=Lambda.filter(positions,function(x){
@@ -99,8 +96,20 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @return  `range`内に存在するCharacterの配列
 	 */
 	public function getCharactersWithIn(point:FlxPoint,range:Float):Array<Character>{
-		var withIn=members.filter(function(c){return c.getMidpoint().distanceTo(point)<range;});
+		var withIn=members.filter(function(c){return c.getMidpoint().distanceTo(point)<range && c.alive;});
 		withIn.sort(function(a,b){return cast(a.getMidpoint().distanceTo(point)-b.getMidpoint().distanceTo(point),Int);});
 		return withIn;
+	}
+
+	public function choose(c:Character){
+		c.chosen=true;
+	}
+
+	public function unChoose(c:Character){
+		c.chosen=false;
+	}
+
+	public function toggleChoice(c:Character){
+		c.chosen=!c.chosen;
 	}
 }

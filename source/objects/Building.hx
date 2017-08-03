@@ -21,7 +21,7 @@ class Building extends FlxSprite{
     makeGraphic(32,64,FlxColor.BROWN);
     timer.start(1);
     timer.onComplete=function(a){
-      PlayState.spawnCharacter(objects.Friend,x,y);
+      // PlayState.spawnCharacter(objects.Friend,x,y);
       timer.reset();
     }
   }

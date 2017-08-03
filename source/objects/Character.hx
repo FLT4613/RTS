@@ -62,7 +62,22 @@ class Character extends FlxNestedSprite{
    */
   public var shadow:FlxNestedSprite;
 
-  override public function new(x:Float,y:Float):Void{
+  /**
+   *  選択中か？
+   */
+  public var chosen:Bool=false;
+
+  /**
+   *  このCharacterにとっての味方
+   */
+  public var friends:CharacterPool;
+
+  /**
+   *  このCharacterにとっての敵
+   */
+  public var enemies:CharacterPool;
+
+  override public function new(x:Float,y:Float,friends,enemies):Void{
     super(x-width/2,y-height/2);
     path=new FlxPath();
     attackTargets=new Array();
@@ -71,6 +86,9 @@ class Character extends FlxNestedSprite{
     attackRange=25;
     emotion=new Emotion(0,0);
     emotion.kill();
+
+    this.friends=friends;
+    this.enemies=enemies;
 
     shadow=new FlxNestedSprite();
     shadow.makeGraphic(32,32,0x00000000).drawEllipse(0,0,14,6,0x33000000);
@@ -115,16 +133,16 @@ class Character extends FlxNestedSprite{
       return health<=0;
     }
     fsm.transitions.add(Idle,Chase,function(a){
-      if(!attackTargets.empty()){
+      if(enemies.getCharactersWithIn(getMidpoint(),chasingRange)[0]!=null){
         FlxG.sound.play(AssetPaths.attack__wav,0.5);
         emotion.emote("attack");
         return true;
       }
       return false;
     }).add(Chase,Idle,function(a){
-      return attackTargets.empty();
+      return enemies.getCharactersWithIn(getMidpoint(),chasingRange)[0]==null;
     }).add(Chase,Attack,function(a){
-      attackTarget=getAttackableTarget();
+      attackTarget=enemies.getCharactersWithIn(getMidpoint(),attackRange)[0];
       return attackTarget!=null;
     }).add(Attack,Chase,function(a){
       return animation.finished || !attackTarget.alive;
@@ -142,15 +160,14 @@ class Character extends FlxNestedSprite{
     .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
     .start(Idle);
 
-
     FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
     initialize();
   }
 
   override public function update(elapsed:Float):Void{
-    fsm.update(elapsed);
     super.update(elapsed);
-    attackTargets=[];
+    fsm.update(elapsed);
+    attackTargets=enemies.getCharactersWithIn(getMidpoint(),chasingRange);
   }
 
   /**
@@ -163,24 +180,6 @@ class Character extends FlxNestedSprite{
       if(destinations[destinations.length-1].equals(point))return;
     }
     destinations.push(point);
-  }
-
-  /**
-   * 攻撃が届く範囲にいるキャラクターのうち、最も近いものを返す
-   * @return  攻撃が届く`Character` または `null`
-   */
-  public function getAttackableTarget():Character{
-    var min:Character=null;
-    for(character in attackTargets.filter(function(a){
-      return getMidpoint().distanceTo(a.getMidpoint())<attackRange;
-      })){
-      if(min==null){
-        min=character;
-        continue;
-      }
-      if(getMidpoint().distanceTo(character.getMidpoint())<getMidpoint().distanceTo(min.getMidpoint()))min=character;
-    }
-    return min;
   }
 
   /**
@@ -316,6 +315,7 @@ class Attack extends FlxFSMState<Character>{
 
 class Dead extends FlxFSMState<Character>{
   override public function enter(owner:Character,fsm:FlxFSM<Character>){
+    owner.chosen=false;
     owner.kill();
   }
 }

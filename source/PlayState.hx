@@ -24,27 +24,9 @@ class PlayState extends FlxState{
 	/**
 	 * キャラクタープール
 	 */
-	static var characters:CharacterPool;
+	public static var friends:CharacterPool;
 
-	/**
-	 * 選択範囲の矩形
-	 */
-	var selectedRange:FlxSprite;
-
-	/**
-	 * 選択範囲の始点
-	 */
-	var selectedRangeStartPos:FlxPoint;
-
-	/**
-	 * 範囲の描画領域
-	 */
-	var ranges:FlxSprite;
-
-	/**
-	 * 選んでるキャラクター
-	 */
-	var choosings:FlxTypedGroup<Friend>;
+	public static var enemies:CharacterPool;
 
 	/**
 	 * 建物
@@ -95,35 +77,27 @@ class PlayState extends FlxState{
 		field.setTileProperties(5,FlxObject.ANY);
 
 
-		ranges=new FlxSprite(0,0);
-		ranges.makeGraphic(FlxG.width,FlxG.height,0x00000000,true);
-
 		ui=new UI();
 
 		FlxG.plugins.add(new FlxMouseEventManager());
 		buildings=new FlxTypedGroup();
 
-		characters=new CharacterPool();
+		friends=new CharacterPool();
+		enemies=new CharacterPool();
 
 		// 味方キャラクターの定義
 		for(i in 0...3){
-			var character=new Friend(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y);
-			characters.add(character);
+			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,friends,enemies);
+			friends.add(character);
 		}
-		choosings=new FlxTypedGroup<Friend>();
 
 		// 敵キャラクターの定義
 		for(i in 0...1){
-			var character=new Enemy(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y);
-			characters.add(character);
+			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,friends,enemies);
+			enemies.add(character);
 		}
 
 		collisions=new FlxTypedGroup<Collision>();
-
-		// 地形描画領域の定義
-		selectedRange=new FlxSprite(0,0);
-		selectedRange.makeGraphic(FlxG.width,FlxG.height,0x66FFFFFF);
-		selectedRange.kill();
 
 		particleEmitter = new FlxEmitter(0, 0);
 		clickParticles = new FlxEmitter(0, 0);
@@ -135,126 +109,33 @@ class PlayState extends FlxState{
 		// 下位レイヤから加える
 		add(field);
 		add(buildings);
-		add(ranges);
+		add(friends);
+		add(enemies);
 		add(ui);
-		add(characters);
 		add(collisions);
 		add(particleEmitter);
 		add(clickParticles);
-		add(selectedRange);
 		FlxG.debugger.toggleKeys=["Q"];
 	}
 
 	override public function update(elapsed:Float):Void{
 		super.update(elapsed);
-		FlxSpriteUtil.fill(ranges, 0x00000000);
 
 		if(FlxG.debugger.visible){
 			FlxG.watch.addQuick("Grid_XY",FlxG.mouse.getPosition().scale(1/gridSize).floor());
 			FlxG.watch.addQuick("Grid_Index",field.getTileIndexByCoords(FlxG.mouse.getPosition()));
 		}
 
-		var nearest:Friend=null;
-		characters.forEachOfType(Friend,function(friend){
-			if(!friend.alive)return;
-			friend.mouseOverlappedMark.visible=false;
-			var distance=friend.getMidpoint().distanceTo(FlxG.mouse.getPosition());
-			if(distance>16)return;
-			if(nearest==null){
-				nearest=friend;
-				return;
-			}
-			if(nearest.getMidpoint().distanceTo(FlxG.mouse.getPosition())>distance){
-				nearest=friend;
-			}
-		});
-		if(nearest!=null){
-			nearest.mouseOverlappedMark.visible=true;
-		}
-
-		if(FlxG.mouse.justPressed){
-			selectedRange.revive();
-			selectedRange.clipRect=FlxRect.weak();
-			selectedRangeStartPos=FlxG.mouse.getPosition();
-			var tileCoordX:Int = Math.floor(FlxG.mouse.x/gridSize);
-			var tileCoordY:Int = Math.floor(FlxG.mouse.y/gridSize);
-			if(nearest!=null){
-				if(nearest.pickedMark.visible){
-					choosings.remove(nearest);
-				}else{
-					choosings.add(nearest);
-				}
-				nearest.pickedMark.visible=!nearest.pickedMark.visible;
-			}else{
-				clickParticles.setPosition(FlxG.mouse.getPosition().x,FlxG.mouse.getPosition().y);
-				for (i in 0 ... 10){
-					var p = new FlxParticle();
-					p.makeGraphic(5,5,FlxColor.WHITE);
-					p.exists=false;
-					clickParticles.add(p);
-				}
-				clickParticles.start(true,0,10);
-				if(choosings.length>0){
-					choosings.forEachAlive(function(choosing){
-						choosing.moveStart(FlxPoint.get(tileCoordX*gridSize+gridSize/2,tileCoordY*gridSize+gridSize/2));
-						if(!FlxG.keys.pressed.Z){choosing.pickedMark.visible=false;}
-					});
-					if(!FlxG.keys.pressed.Z){
-						choosings.clear();
-					}
-				}
-			}
-		}
-
-		if(FlxG.mouse.justPressedRight){
-			choosings.forEachAlive(function(choosing){
-				choosing.pickedMark.visible=false;
-			});
-			choosings.clear();
-		}
-
-		if(FlxG.mouse.pressed){
-			if(FlxG.swipes!=null){
-				selectedRange.clipRect=FlxRect.weak(
-					(FlxG.mouse.x>selectedRangeStartPos.x)?selectedRangeStartPos.x:FlxG.mouse.x,
-					(FlxG.mouse.y>selectedRangeStartPos.y)?selectedRangeStartPos.y:FlxG.mouse.y,
-					Std.int(Math.abs(FlxG.mouse.x-selectedRangeStartPos.x)),
-					Std.int(Math.abs(FlxG.mouse.y-selectedRangeStartPos.y))
-				);
-			}
-		}
-
-		if(FlxG.mouse.justReleased){
-			characters.forEachOfType(Friend,function(friend){
-				if(!friend.alive)return;
-				if(selectedRange.clipRect.containsPoint(friend.getMidpoint())){
-					choosings.add(friend);
-					friend.pickedMark.visible=true;
-				}
-			});
-
-			selectedRange.kill();
-		}
-
-		characters.forEachOfType(Friend,function(friend:Character){
-			if(friend.fsm.stateClass==objects.Character.Dead)return;
-			characters.forEachOfType(Enemy,function(enemy:Character){
-				if(enemy.fsm.stateClass==objects.Character.Dead)return;
-				if(FlxMath.isDistanceWithin(friend,enemy,friend.chasingRange)){
-					friend.attackTargets.push(enemy);
-				}
-				if(FlxMath.isDistanceWithin(friend,enemy,enemy.chasingRange)){
-					enemy.attackTargets.push(friend);
-				}
-			});
-		});
-
 		if(FlxG.keys.justPressed.ONE){
-			spawnCharacter(Friend,FlxG.mouse.x,FlxG.mouse.y);
+			var character=friends.recycle(Character,Character.new.bind(FlxG.mouse.x,FlxG.mouse.y,friends,enemies));
+			character.revive();
+			friends.add(character);
 		}
 
 		if(FlxG.keys.justPressed.TWO){
-			spawnCharacter(Enemy,FlxG.mouse.x,FlxG.mouse.y);
+			var character=enemies.recycle(Character,Character.new.bind(FlxG.mouse.x,FlxG.mouse.y,friends,enemies));
+			character.revive();
+			enemies.add(character);
 		}
 
 		if(FlxG.keys.justPressed.THREE){
@@ -265,12 +146,6 @@ class PlayState extends FlxState{
 
 	public static function makeCollision():Collision{
 		return collisions.recycle(Collision,Collision.new);
-	}
-
-	public static function spawnCharacter(type:Class<Character>,x:Float,y:Float){
-			var character=characters.recycle(type,Friend.new.bind(x,y));
-			character.revive();
-			characters.add(character);
 	}
 
 	public static function spawnBuilding(x:Float,y:Float){
