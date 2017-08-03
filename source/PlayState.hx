@@ -85,16 +85,17 @@ class PlayState extends FlxState{
 		friends=new CharacterPool();
 		enemies=new CharacterPool();
 
+		friends.enemies=enemies;
+		enemies.enemies=friends;
+
 		// 味方キャラクターの定義
 		for(i in 0...3){
-			var character=new Character(field.getTileCoordsByIndex(261,true).x,field.getTileCoordsByIndex(261,true).y,friends,enemies);
-			friends.add(character);
+			friends.generate(field.getTileCoordsByIndex(261,true));
 		}
 
 		// 敵キャラクターの定義
 		for(i in 0...1){
-			var character=new Character(field.getTileCoordsByIndex(128,true).x,field.getTileCoordsByIndex(128,true).y,friends,enemies);
-			enemies.add(character);
+			enemies.generate(field.getTileCoordsByIndex(128,true));
 		}
 
 		collisions=new FlxTypedGroup<Collision>();
@@ -127,15 +128,11 @@ class PlayState extends FlxState{
 		}
 
 		if(FlxG.keys.justPressed.ONE){
-			var character=friends.recycle(Character,Character.new.bind(FlxG.mouse.x,FlxG.mouse.y,friends,enemies));
-			character.revive();
-			friends.add(character);
+			friends.generate(FlxG.mouse.getPosition());
 		}
 
 		if(FlxG.keys.justPressed.TWO){
-			var character=enemies.recycle(Character,Character.new.bind(FlxG.mouse.x,FlxG.mouse.y,friends,enemies));
-			character.revive();
-			enemies.add(character);
+			enemies.generate(FlxG.mouse.getPosition());
 		}
 
 		if(FlxG.keys.justPressed.THREE){

@@ -12,6 +12,11 @@ import objects.*;
 class CharacterPool extends FlxTypedGroup<Character>{
   var positions:Map<Int,Array<Character>>;
 
+  /**
+   *  このCharacterPoolにとっての敵
+   */
+  public var enemies:CharacterPool;
+
   override public function new(){
 	  super();
     positions=new Map<Int,Array<Character>>();
@@ -111,5 +116,14 @@ class CharacterPool extends FlxTypedGroup<Character>{
 
 	public function toggleChoice(c:Character){
 		c.chosen=!c.chosen;
+	}
+
+	public function generate(point:FlxPoint){
+			var character=recycle(Character,Character.new.bind(point.x,point.y));
+			character.revive();
+			character.friends=this;
+			character.enemies=enemies;
+			add(character);
+			return character;
 	}
 }

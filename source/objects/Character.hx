@@ -77,7 +77,7 @@ class Character extends FlxNestedSprite{
    */
   public var enemies:CharacterPool;
 
-  override public function new(x:Float,y:Float,friends,enemies):Void{
+  override public function new(x:Float,y:Float):Void{
     super(x-width/2,y-height/2);
     path=new FlxPath();
     attackTargets=new Array();
@@ -86,9 +86,6 @@ class Character extends FlxNestedSprite{
     attackRange=25;
     emotion=new Emotion(0,0);
     emotion.kill();
-
-    this.friends=friends;
-    this.enemies=enemies;
 
     shadow=new FlxNestedSprite();
     shadow.makeGraphic(32,32,0x00000000).drawEllipse(0,0,14,6,0x33000000);
