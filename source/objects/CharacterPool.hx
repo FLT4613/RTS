@@ -118,6 +118,10 @@ class CharacterPool extends FlxTypedGroup<Character>{
 		c.chosen=!c.chosen;
 	}
 
+	/**
+	 *  ある地点`point`にキャラクターを生成する
+	 * @param   point 生成地点
+	 */
 	public function generate(point:FlxPoint){
 			var character=recycle(Character,Character.new.bind(point.x,point.y));
 			character.revive();
