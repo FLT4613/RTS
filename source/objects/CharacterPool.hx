@@ -123,8 +123,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @param   point 生成地点
 	 */
 	public function generate(point:FlxPoint){
-			var character=recycle(Character,Character.new.bind(point.x,point.y));
-			character.revive();
+			var character=new Character(point.x,point.y);
 			character.friends=this;
 			character.enemies=enemies;
 			add(character);

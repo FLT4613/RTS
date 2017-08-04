@@ -86,6 +86,9 @@ class Character extends FlxNestedSprite{
     attackRange=25;
     emotion=new Emotion(0,0);
     emotion.kill();
+    health=10;
+    attackTarget=null;
+    direction=Direction.DOWN;
 
     shadow=new FlxNestedSprite();
     shadow.makeGraphic(32,32,0x00000000).drawEllipse(0,0,14,6,0x33000000);
@@ -158,7 +161,6 @@ class Character extends FlxNestedSprite{
     .start(Idle);
 
     FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
-    initialize();
   }
 
   override public function update(elapsed:Float):Void{
@@ -199,23 +201,6 @@ class Character extends FlxNestedSprite{
   }
 
   /**
-   *  ゲーム中に増減する数値を初期化する
-   */
-  public function initialize(){
-    health=10;
-    path.cancel();
-    attackTargets=[];
-    destinations=[];
-    attackTarget=null;
-    direction=Direction.DOWN;
-  }
-
-  override public function revive(){
-    super.revive();
-    initialize();
-  }
-
-  /**
    *  ノックバックさせる ノックバック中は状態遷移が無効になる。
    */
   public function knockBack(){
@@ -245,7 +230,7 @@ class Idle extends FlxFSMState<Character>{
   }
 
   override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-    if(!owner.destinations.empty() && owner.path.finished){
+    if(!owner.destinations.empty() && !owner.path.active){
       var path=PlayState.field.findPath(owner.getMidpoint(),owner.destinations.shift());
       owner.path.start(path);
     }
