@@ -4,6 +4,7 @@ using Lambda;
 
 import flixel.FlxG;
 import flixel.group.FlxSpriteGroup;
+import effects.*;
 
 class UI extends FlxSpriteGroup{
   private var grid:Grid;
@@ -34,6 +35,7 @@ class UI extends FlxSpriteGroup{
     }
 
     if(FlxG.mouse.justPressed){
+      Effects.emitClickEffect(FlxG.mouse.getPosition());
       PlayState.friends.members.filter(function(c){return c.chosen;}).iter(function(c){
         if(!c.alive)return;
         c.moveStart(FlxG.mouse.getPosition());

@@ -13,12 +13,11 @@ import flixel.math.FlxRect;
 import flixel.math.FlxPoint;
 import flixel.group.FlxGroup;
 import flixel.tile.FlxTilemap;
-import flixel.effects.particles.FlxEmitter;
-import flixel.effects.particles.FlxParticle;
 using flixel.input.mouse.FlxMouseEventManager;
 
 import objects.*;
 import ui.*;
+import effects.*;
 
 class PlayState extends FlxState{
 	/**
@@ -39,6 +38,11 @@ class PlayState extends FlxState{
 	public static var gridSize(default,null)=32;
 
 	/**
+	 *  エフェクト
+	 */
+	public var effects:Effects;
+
+	/**
 	 *  UI
 	 */
 	public var ui:UI;
@@ -53,16 +57,6 @@ class PlayState extends FlxState{
 	 */
 	private static var collisions:FlxTypedGroup<Collision>;
 
-	/**
-	 * パーティクル
-	 */
-	public static var particleEmitter:FlxEmitter;
-
-	/**
-	 * クリック地点に発生するパーティクル
-	 */
-	public static var clickParticles:FlxEmitter;
-
 	override public function create():Void{
 		super.create();
 
@@ -76,7 +70,7 @@ class PlayState extends FlxState{
 		field.setTileProperties(4,FlxObject.ANY);
 		field.setTileProperties(5,FlxObject.ANY);
 
-
+		effects=new Effects();
 		ui=new UI();
 
 		FlxG.plugins.add(new FlxMouseEventManager());
@@ -100,22 +94,15 @@ class PlayState extends FlxState{
 
 		collisions=new FlxTypedGroup<Collision>();
 
-		particleEmitter = new FlxEmitter(0, 0);
-		clickParticles = new FlxEmitter(0, 0);
-
-		clickParticles.alpha.set(0,0,255);
-		clickParticles.speed.set(100);
-		clickParticles.lifespan.set(0.2);
-
 		// 下位レイヤから加える
 		add(field);
 		add(buildings);
 		add(friends);
 		add(enemies);
+		add(effects);
+			// add(collisions);
+			// add(emotions)
 		add(ui);
-		add(collisions);
-		add(particleEmitter);
-		add(clickParticles);
 		FlxG.debugger.toggleKeys=["Q"];
 	}
 
