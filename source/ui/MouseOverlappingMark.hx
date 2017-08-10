@@ -16,13 +16,12 @@ class MouseOverlappingMark extends FlxSprite{
 
   override public function update(elapsed){
     super.update(elapsed);
-    setPosition(target.x,target.y);
   }
 
   public function cover(c:Character){
     revive();
     target=c;
-    setPosition(target.x,target.y);
+    setPosition(target.x-target.offset.x,target.y-target.offset.y);
   }
 
   public function unCover(){

@@ -12,7 +12,7 @@ class ChosenMarks extends FlxSpriteGroup{
     super();
     targets=new Map<Character,FlxSprite>();
   }
-  
+
   override public function update(elapsed){
     super.update(elapsed);
     PlayState.friends.members.filter(function(c){return c.chosen;}).iter(function(c){
@@ -23,7 +23,7 @@ class ChosenMarks extends FlxSpriteGroup{
     });
 
     for(c in targets.keys()){
-      targets.get(c).setPosition(c.x,c.y);
+      targets.get(c).setPosition(c.x-c.offset.x,c.y-c.offset.y);
       if(c.chosen==false){
         var rm=targets.get(c);
         members.remove(rm);
