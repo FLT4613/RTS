@@ -16,6 +16,7 @@ import flixel.tile.FlxTilemap;
 using flixel.input.mouse.FlxMouseEventManager;
 
 import objects.*;
+import objects.character.*;
 import ui.*;
 import effects.*;
 

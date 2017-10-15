@@ -4,7 +4,7 @@ using Lambda;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxPoint;
-import objects.Character;
+import objects.character.Character;
 
 class MouseOverlappingMark extends FlxSprite{
   private var target:Character=null;

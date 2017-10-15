@@ -4,7 +4,7 @@ using Lambda;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxPoint;
-import objects.Character;
+import objects.character.Character;
 
 class ChosenMarks extends FlxSpriteGroup{
   private var targets:Map<Character,FlxSprite>;

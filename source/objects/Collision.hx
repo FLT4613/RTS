@@ -1,6 +1,8 @@
 package objects;
+
 import flixel.FlxSprite;
 import flixel.util.FlxTimer;
+import objects.character.*;
 
 /**
  * 当たり判定の種類

@@ -1,14 +1,16 @@
-package objects;
+package objects.character;
+
 import flixel.FlxG;
 using Lambda;
 import flixel.util.FlxPath;
 import flixel.math.FlxPoint;
-import flixel.util.FlxTimer;
 import flixel.tweens.FlxTween;
 import objects.Direction;
 using flixel.util.FlxSpriteUtil;
 import flixel.addons.util.FlxFSM;
 import flixel.addons.display.FlxNestedSprite;
+
+import objects.character.state.*;
 
 class Character extends FlxNestedSprite{
   /**
@@ -210,94 +212,3 @@ class Character extends FlxNestedSprite{
   }
 }
 
-class KnockBack extends FlxFSMState<Character>{
-  override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    owner.animation.play("DeadLEFT");
-  }
-
-  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-
-  }
-
-  override public function exit(owner:Character){
-
-  }
-}
-
-class Idle extends FlxFSMState<Character>{
-  override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    owner.animation.play("Idle"+Std.string(owner.direction));
-  }
-
-  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-    if(!owner.destinations.empty() && !owner.path.active){
-      var path=PlayState.field.findPath(owner.getMidpoint(),owner.destinations.shift());
-      owner.path.start(path);
-    }
-    if(owner.path.active){
-      owner.path.update(elapsed);
-      owner.animation.play("Move"+Std.string(owner.direction));
-      owner.stareAtPoint(owner.path.nodes[owner.path.nodeIndex]);
-    }else{
-      owner.animation.play("Idle"+Std.string(owner.direction),true);
-    }
-  }
-
-  override public function exit(owner:Character){
-    owner.path.cancel();
-  }
-}
-
-class Chase extends FlxFSMState<Character>{
-  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-    if(!owner.attackTargets.empty()){
-      owner.animation.play("Move"+Std.string(owner.direction));
-      var path=PlayState.field.findPath(owner.getMidpoint(),owner.attackTargets[0].getMidpoint());
-      if(path!=null)owner.stareAtPoint(path[0]);
-      owner.path.start(path);
-      owner.path.update(elapsed);
-    };
-  }
-
-  override public function exit(owner:Character){
-    owner.path.cancel();
-  }
-}
-
-class Attack extends FlxFSMState<Character>{
-  /**
-   *  攻撃間隔
-   */
-  public var attackInterval:FlxTimer;
-
-  override public function new(){
-    super();
-    attackInterval=new FlxTimer();
-  }
-
-  override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    attackInterval.start(1.5);
-    owner.stareAtPoint(owner.attackTarget.getMidpoint());
-    owner.animation.play("Attack"+Std.string(owner.direction));
-    owner.animation.pause();
-  }
-
-  override public function update(elapsed:Float,owner:Character,fsm:FlxFSM<Character>){
-    if(attackInterval.finished)owner.animation.resume();
-    if(owner.animation.finished){
-      if(owner.attackTarget.tween.finished){
-        FlxG.sound.play(FlxG.random.getObject([AssetPaths.hit1__wav,AssetPaths.hit2__wav,AssetPaths.hit3__wav]));
-        owner.attackTarget.health-=1;
-        // owner.attackTarget.knockBack();
-      }
-      owner.attackTarget=null;
-    }
-  }
-}
-
-class Dead extends FlxFSMState<Character>{
-  override public function enter(owner:Character,fsm:FlxFSM<Character>){
-    owner.chosen=false;
-    owner.kill();
-  }
-}

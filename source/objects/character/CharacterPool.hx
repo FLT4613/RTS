@@ -1,4 +1,4 @@
-package objects;
+package objects.character;
 
 using Lambda;
 
@@ -7,7 +7,7 @@ import flixel.FlxObject;
 import flixel.group.FlxGroup;
 import flixel.math.FlxPoint;
 
-import objects.*;
+import objects.character.state.*;
 
 class CharacterPool extends FlxTypedGroup<Character>{
   var positions:Map<Int,Array<Character>>;
@@ -47,7 +47,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 
   private function avoidSymbolsOverlap(){
 		var overlappings=Lambda.filter(positions,function(x){
-			return x.filter(function(c){return c.fsm.stateClass==objects.Character.Idle && !c.path.active;}).length>1;
+			return x.filter(function(c){return c.fsm.stateClass==Idle && !c.path.active;}).length>1;
 		});
 
 		if(overlappings.length==0){
