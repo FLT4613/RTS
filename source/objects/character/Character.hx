@@ -161,8 +161,6 @@ class Character extends FlxNestedSprite{
     .add(KnockBack,Chase,function(a){return tween.finished && !attackTargets.empty();})
     .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
     .start(Idle);
-
-    FlxG.watch.add(fsm,"stateClass",Type.getClassName(Type.getClass(this)));
   }
 
   override public function update(elapsed:Float):Void{
