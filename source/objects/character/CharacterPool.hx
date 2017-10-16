@@ -92,7 +92,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	}
 
 	/**
-	 * `point`から`range`px内のCharacterを配列で返却
+	 * `point`から`range`px内に存在するCharacterの配列を取得
 	 *
 	 * Array[0]は、`point`から最も近いCharacter、以降距離順に並ぶ
 	 *
@@ -104,6 +104,17 @@ class CharacterPool extends FlxTypedGroup<Character>{
 		var withIn=members.filter(function(c){return c.getMidpoint().distanceTo(point)<range && c.alive;});
 		withIn.sort(function(a,b){return cast(a.getMidpoint().distanceTo(point)-b.getMidpoint().distanceTo(point),Int);});
 		return withIn;
+	}
+
+	/**
+	 * `range`px内の、最も`point`から近いCharacterを取得
+	 * @param   point 始点
+	 * @param   range 距離
+	 * @return  `range`内、かつ最もpointに近いCharacter
+	 */
+	public function getNearestCharacterWithIn(point:FlxPoint,range:Float):Character{
+		var withIn=getCharactersWithIn(point,range);
+		return withIn.empty()?null:withIn[0];
 	}
 
 	public function choose(c:Character){
