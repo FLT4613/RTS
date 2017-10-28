@@ -131,30 +131,15 @@ class Character extends FlxNestedSprite{
     var knockBackCondition=function(character:Character){
       return !character.tween.finished;
     }
-    var deadCondition=function(a){
-      return health<=0;
-    }
-    fsm.transitions.add(Idle,Chase,function(a){
-      if(enemies.getCharactersWithIn(getMidpoint(),chasingRange)[0]!=null){
-        FlxG.sound.play(AssetPaths.attack__wav,0.5);
-        emotion.emote("attack");
-        return true;
-      }
-      return false;
-    }).add(Chase,Idle,function(a){
-      return enemies.getCharactersWithIn(getMidpoint(),chasingRange)[0]==null;
-    }).add(Chase,Attack,function(a){
-      attackTarget=enemies.getCharactersWithIn(getMidpoint(),attackRange)[0];
-      return attackTarget!=null;
-    }).add(Attack,Chase,function(a){
-      return animation.finished || !attackTarget.alive;
-    })
-    .add(Attack,Dead,deadCondition)
-    .add(Chase,Dead,deadCondition)
-    .add(Idle,Dead,deadCondition)
-    .add(Dead,Idle,function(a){
-      return health>0;
-    }).add(Idle,KnockBack,knockBackCondition)
+
+    fsm.transitions.add(Idle,Chase,Transitions.findChaseTarget)
+    .add(Chase,Idle,Transitions.loseChaseTarget)
+    .add(Chase,Attack,Transitions.inAttackRange)
+    .add(Attack,Chase,Transitions.defeatEnemy)
+    .add(Attack,Dead,Transitions.dead)
+    .add(Chase,Dead,Transitions.dead)
+    .add(Idle,Dead,Transitions.dead)
+    .add(Idle,KnockBack,knockBackCondition)
     .add(Chase,KnockBack,knockBackCondition)
     .add(Attack,KnockBack,knockBackCondition)
     .add(KnockBack,Idle,function(a){return tween.finished && attackTargets.empty();})
