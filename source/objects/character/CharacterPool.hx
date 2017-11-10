@@ -10,19 +10,13 @@ import flixel.math.FlxPoint;
 import objects.character.state.*;
 
 class CharacterPool extends FlxTypedGroup<Character>{
-  var positions:Map<Int,Array<Character>>;
-
-  /**
-   *  このCharacterPoolにとっての敵
-   */
-  public var enemies:CharacterPool;
-
-  override public function new(){
+  public static var positions:Map<Int,Array<Character>>=new Map<Int,Array<Character>>();
+	public static var instance(default,null):CharacterPool=new CharacterPool();
+  override private function new(){
 	  super();
-    positions=new Map<Int,Array<Character>>();
   }
 
-  override public function update(elapsed){
+  override public static function update(elapsed){
     super.update(elapsed);
 		members.sort(function(a,b){
 			return Std.int(a.y-b.y);
@@ -50,7 +44,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @param   prevIndex 更新前のindex
 	 * @param   nextIndex 更新後のindex
 	 */
-	public function notifyPositionUpdate(c:Character,prevIndex:Int,nextIndex:Int){
+	public static function notifyPositionUpdate(c:Character,prevIndex:Int,nextIndex:Int){
 		positions[prevIndex].remove(c);
 		if(positions.exists(nextIndex)){
 			positions[nextIndex].push(c);
@@ -114,7 +108,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @param   range 距離
 	 * @return  `range`内に存在するCharacterの配列
 	 */
-	public function getCharactersWithIn(point:FlxPoint,range:Float):Array<Character>{
+	public static function getCharactersWithIn(point:FlxPoint,range:Float):Array<Character>{
 		var withIn=members.filter(function(c){return c.getMidpoint().distanceTo(point)<range && c.alive;});
 		withIn.sort(function(a,b){return cast(a.getMidpoint().distanceTo(point)-b.getMidpoint().distanceTo(point),Int);});
 		return withIn;
@@ -126,20 +120,20 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @param   range 距離
 	 * @return  `range`内、かつ最もpointに近いCharacter
 	 */
-	public function getNearestCharacterWithIn(point:FlxPoint,range:Float):Character{
+	public static function getNearestCharacterWithIn(point:FlxPoint,range:Float):Character{
 		var withIn=getCharactersWithIn(point,range);
 		return withIn.empty()?null:withIn[0];
 	}
 
-	public function choose(c:Character){
+	public static function choose(c:Character){
 		c.chosen=true;
 	}
 
-	public function unChoose(c:Character){
+	public static function unChoose(c:Character){
 		c.chosen=false;
 	}
 
-	public function toggleChoice(c:Character){
+	public static function toggleChoice(c:Character){
 		c.chosen=!c.chosen;
 	}
 
@@ -147,7 +141,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 *  ある地点`point`にキャラクターを生成する
 	 * @param   point 生成地点
 	 */
-	public function generate(point:FlxPoint){
+	public static function generate(point:FlxPoint){
 			var character=new Character(point.x,point.y);
 			character.friends=this;
 			character.enemies=enemies;
