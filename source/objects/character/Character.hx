@@ -13,6 +13,7 @@ import flixel.addons.display.FlxNestedSprite;
 import objects.character.state.*;
 
 class Character extends FlxNestedSprite{
+  public var type:CharacterType;
   /**
    *  キャラクターの向き
    */
@@ -74,13 +75,9 @@ class Character extends FlxNestedSprite{
    */
   public var friends:CharacterPool;
 
-  /**
-   *  このCharacterにとっての敵
-   */
-  public var enemies:CharacterPool;
-
-  override public function new(x:Float,y:Float):Void{
+  override public function new(x:Float,y:Float,type:CharacterType):Void{
     super(x-width/2,y-height/2);
+    this.type=type;
     path=new FlxPath();
     attackTargets=new Array();
     destinations=new Array<FlxPoint>();
@@ -133,25 +130,25 @@ class Character extends FlxNestedSprite{
     }
 
     fsm.transitions.add(Idle,Chase,Transitions.findChaseTarget)
-    .add(Chase,Idle,Transitions.loseChaseTarget)
-    .add(Chase,Attack,Transitions.inAttackRange)
-    .add(Attack,Chase,Transitions.defeatEnemy)
-    .add(Attack,Dead,Transitions.dead)
-    .add(Chase,Dead,Transitions.dead)
+    // .add(Chase,Idle,Transitions.loseChaseTarget)
+    // .add(Chase,Attack,Transitions.inAttackRange)
+    // .add(Attack,Chase,Transitions.defeatEnemy)
+    // .add(Attack,Dead,Transitions.dead)
+    // .add(Chase,Dead,Transitions.dead)
     .add(Idle,Dead,Transitions.dead)
-    .add(Idle,KnockBack,knockBackCondition)
-    .add(Chase,KnockBack,knockBackCondition)
-    .add(Attack,KnockBack,knockBackCondition)
-    .add(KnockBack,Idle,function(a){return tween.finished && attackTargets.empty();})
-    .add(KnockBack,Chase,function(a){return tween.finished && !attackTargets.empty();})
-    .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
+    // .add(Idle,KnockBack,knockBackCondition)
+    // .add(Chase,KnockBack,knockBackCondition)
+    // .add(Attack,KnockBack,knockBackCondition)
+    // .add(KnockBack,Idle,function(a){return tween.finished && attackTargets.empty();})
+    // .add(KnockBack,Chase,function(a){return tween.finished && !attackTargets.empty();})
+    // .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
     .start(Idle);
   }
 
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
     fsm.update(elapsed);
-    attackTargets=enemies.getCharactersWithIn(getMidpoint(),chasingRange);
+    // attackTargets=enemies.getCharactersWithIn(getMidpoint(),chasingRange);
   }
 
   /**

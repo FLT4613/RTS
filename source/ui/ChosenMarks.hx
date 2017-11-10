@@ -4,7 +4,7 @@ using Lambda;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxPoint;
-import objects.character.Character;
+import objects.character.*;
 
 class ChosenMarks extends FlxSpriteGroup{
   private var targets:Map<Character,FlxSprite>;
@@ -15,7 +15,7 @@ class ChosenMarks extends FlxSpriteGroup{
 
   override public function update(elapsed){
     super.update(elapsed);
-    PlayState.friends.members.filter(function(c){return c.chosen;}).iter(function(c){
+    CharacterPool.instance.members.filter(function(c){return c.chosen;}).iter(function(c){
       if(targets.exists(c))return;
       var mark=new ChosenMark();
       targets.set(c,mark);

@@ -7,6 +7,8 @@ import flixel.group.FlxGroup;
 import flixel.effects.particles.FlxEmitter;
 import flixel.effects.particles.FlxParticle;
 
+import objects.character.*;
+
 class UI extends FlxGroup{
   private var grid:Grid;
   private var selectSquare:SelectSquare;
@@ -46,7 +48,7 @@ class UI extends FlxGroup{
   override public function update(elapsed){
     super.update(elapsed);
 
-		var nearest=PlayState.friends.getCharactersWithIn(FlxG.mouse.getPosition(),16);
+		var nearest:Array<Character>=CharacterPool.instance.getCharactersWithIn(FlxG.mouse.getPosition(),16);
 
  		if(!nearest.empty()){
 			mouseOverlappingMark.cover(nearest[0]);
@@ -57,13 +59,13 @@ class UI extends FlxGroup{
     if(FlxG.mouse.justPressed){
       clickParticles.setPosition(FlxG.mouse.x,FlxG.mouse.y);
       clickParticles.start(true,0.1,10);
-      PlayState.friends.members.filter(function(c){return c.chosen;}).iter(function(c){
+      CharacterPool.instance.getCharacters(CharacterType.Friend).filter(function(c){return c.chosen;}).iter(function(c){
       if(!c.alive)return;
       c.moveStart(FlxG.mouse.getPosition());
       c.chosen=false;
     });
     if(!nearest.empty()){
-      PlayState.friends.toggleChoice(nearest[0]);
+      CharacterPool.instance.toggleChoice(nearest[0]);
     }
     if(!selectSquare.alive){
       selectSquare.set(FlxG.mouse.x,FlxG.mouse.y);
@@ -73,9 +75,9 @@ class UI extends FlxGroup{
 
     if(FlxG.mouse.justReleased){
       if(!selectSquare.clipRect.isEmpty){
-        PlayState.friends.forEachAlive(function(c){
-          if(selectSquare.clipRect.containsPoint(c.getMidpoint())){
-            PlayState.friends.choose(c);
+        CharacterPool.instance.forEachAlive(function(c){
+          if(c.type==CharacterType.Friend && selectSquare.clipRect.containsPoint(c.getMidpoint())){
+            CharacterPool.instance.choose(c);
           }
         });
       }

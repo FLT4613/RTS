@@ -22,13 +22,6 @@ import effects.*;
 
 class PlayState extends FlxState{
 	/**
-	 * キャラクタープール
-	 */
-	public static var friends:CharacterPool;
-
-	public static var enemies:CharacterPool;
-
-	/**
 	 * 建物
 	 */
 	static var buildings:FlxTypedGroup<Building>;
@@ -77,20 +70,14 @@ class PlayState extends FlxState{
 		FlxG.plugins.add(new FlxMouseEventManager());
 		buildings=new FlxTypedGroup();
 
-		friends=new CharacterPool();
-		enemies=new CharacterPool();
-
-		friends.enemies=enemies;
-		enemies.enemies=friends;
-
 		// 味方キャラクターの定義
 		for(i in 0...3){
-			friends.generate(field.getTileCoordsByIndex(261,true));
+			CharacterPool.instance.generate(field.getTileCoordsByIndex(261,true),CharacterType.Friend);
 		}
 
 		// 敵キャラクターの定義
 		for(i in 0...1){
-			enemies.generate(field.getTileCoordsByIndex(128,true));
+			CharacterPool.instance.generate(field.getTileCoordsByIndex(128,true),CharacterType.Enemy("Group1"));
 		}
 
 		collisions=new FlxTypedGroup<Collision>();
@@ -98,8 +85,7 @@ class PlayState extends FlxState{
 		// 下位レイヤから加える
 		add(field);
 		add(buildings);
-		add(friends);
-		add(enemies);
+		add(CharacterPool.instance);
 		add(effects);
 			// add(collisions);
 			// add(emotions)
@@ -116,11 +102,11 @@ class PlayState extends FlxState{
 		}
 
 		if(FlxG.keys.justPressed.ONE){
-			friends.generate(FlxG.mouse.getPosition());
+			CharacterPool.instance.generate(FlxG.mouse.getPosition(),CharacterType.Friend);
 		}
 
 		if(FlxG.keys.justPressed.TWO){
-			enemies.generate(FlxG.mouse.getPosition());
+			CharacterPool.instance.generate(FlxG.mouse.getPosition(),CharacterType.Enemy("Group1"));
 		}
 
 		if(FlxG.keys.justPressed.THREE){

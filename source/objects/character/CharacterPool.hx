@@ -16,7 +16,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	  super();
   }
 
-  override public static function update(elapsed){
+  override public function update(elapsed){
     super.update(elapsed);
 		members.sort(function(a,b){
 			return Std.int(a.y-b.y);
@@ -53,7 +53,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 		}
 	}
 
-  private function avoidSymbolsOverlap(){
+  private static function avoidSymbolsOverlap(){
 		var overlappings=Lambda.filter(positions,function(x){
 			return x.filter(function(c){return c.fsm.stateClass==Idle && !c.path.active;}).length>1;
 		});
@@ -108,7 +108,7 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @param   range 距離
 	 * @return  `range`内に存在するCharacterの配列
 	 */
-	public static function getCharactersWithIn(point:FlxPoint,range:Float):Array<Character>{
+	public function getCharactersWithIn(point:FlxPoint,range:Float):Array<Character>{
 		var withIn=members.filter(function(c){return c.getMidpoint().distanceTo(point)<range && c.alive;});
 		withIn.sort(function(a,b){return cast(a.getMidpoint().distanceTo(point)-b.getMidpoint().distanceTo(point),Int);});
 		return withIn;
@@ -120,20 +120,20 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 * @param   range 距離
 	 * @return  `range`内、かつ最もpointに近いCharacter
 	 */
-	public static function getNearestCharacterWithIn(point:FlxPoint,range:Float):Character{
+	public function getNearestCharacterWithIn(point:FlxPoint,range:Float):Character{
 		var withIn=getCharactersWithIn(point,range);
 		return withIn.empty()?null:withIn[0];
 	}
 
-	public static function choose(c:Character){
+	public function choose(c:Character){
 		c.chosen=true;
 	}
 
-	public static function unChoose(c:Character){
+	public function unChoose(c:Character){
 		c.chosen=false;
 	}
 
-	public static function toggleChoice(c:Character){
+	public function toggleChoice(c:Character){
 		c.chosen=!c.chosen;
 	}
 
@@ -141,11 +141,13 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 *  ある地点`point`にキャラクターを生成する
 	 * @param   point 生成地点
 	 */
-	public static function generate(point:FlxPoint){
-			var character=new Character(point.x,point.y);
-			character.friends=this;
-			character.enemies=enemies;
+	public function generate(point:FlxPoint,type:CharacterType){
+			var character=new Character(point.x,point.y,type);
 			add(character);
 			return character;
+	}
+
+	public function getCharacters(type:CharacterType):Array<Character>{
+		return members.filter(function(c:Character){return c.type==type;});
 	}
 }

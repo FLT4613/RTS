@@ -7,11 +7,11 @@ class Transitions{
       @param c owner
    */
   public static function findChaseTarget(c:Character){
-    if(c.enemies.getCharactersWithIn(c.getMidpoint(),c.chasingRange)[0]!=null){
-      FlxG.sound.play(AssetPaths.attack__wav,0.5);
-      c.emotion.emote("attack");
-      return true;
-    }
+    // if(c.enemies.getCharactersWithIn(c.getMidpoint(),c.chasingRange)[0]!=null){
+    //   FlxG.sound.play(AssetPaths.attack__wav,0.5);
+    //   c.emotion.emote("attack");
+    //   return true;
+    // }
     return false;
   }
 
@@ -20,7 +20,7 @@ class Transitions{
       @param c owner 
    */
   public static function loseChaseTarget(c:Character){
-    return c.enemies.getCharactersWithIn(c.getMidpoint(),c.chasingRange)[0]==null;
+    // return c.enemies.getCharactersWithIn(c.getMidpoint(),c.chasingRange)[0]==null;
   }
 
   /**
@@ -28,7 +28,7 @@ class Transitions{
       @param c owner
    */
   public static function inAttackRange(c:Character){
-    c.attackTarget=c.enemies.getCharactersWithIn(c.getMidpoint(),c.attackRange)[0];
+    // c.attackTarget=c.enemies.getCharactersWithIn(c.getMidpoint(),c.attackRange)[0];
     return c.attackTarget!=null;
   }
 
