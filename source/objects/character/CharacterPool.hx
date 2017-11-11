@@ -22,7 +22,6 @@ class CharacterPool extends FlxTypedGroup<Character>{
 			return Std.int(a.y-b.y);
 		});
 
-		updatePositions();
 		avoidSymbolsOverlap();
   }
 
@@ -40,12 +39,14 @@ class CharacterPool extends FlxTypedGroup<Character>{
 
 	/**
 	 * キャラクターの現在位置を更新する
-	 * @param   c キャラクター
-	 * @param   prevIndex 更新前のindex
-	 * @param   nextIndex 更新後のindex
+	 @param   c キャラクター
+	 @param   prevIndex 更新前のindex
+	 @param   nextIndex 更新後のindex
 	 */
-	public static function notifyPositionUpdate(c:Character,prevIndex:Int,nextIndex:Int){
-		positions[prevIndex].remove(c);
+	public function notifyPositionUpdate(c:Character,prevIndex:Int,nextIndex:Int){
+		if(positions.exists(prevIndex)){
+			positions[prevIndex].remove(c);
+		}
 		if(positions.exists(nextIndex)){
 			positions[nextIndex].push(c);
 		}else{
