@@ -144,6 +144,11 @@ class Character extends FlxNestedSprite{
   override public function update(elapsed:Float):Void{
     super.update(elapsed);
     fsm.update(elapsed);
+    var nextIndex:Int=PlayState.field.getTileIndexByCoords(getMidpoint());
+    if(index!=nextIndex){
+      CharacterPool.instance.notifyPositionUpdate(this,index,nextIndex);
+      index=nextIndex;
+    }
     // attackTargets=enemies.getCharactersWithIn(getMidpoint(),chasingRange);
   }
 
