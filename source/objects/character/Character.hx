@@ -23,7 +23,7 @@ class Character extends FlxNestedSprite{
    * 到達予定の目的地
    * 先頭要素が最も早く指定された目的地、以降時系列順に格納
    */
-  public var destinations:Array<FlxPoint>;
+  public var destinations:Array<FlxPoint>=new Array<FlxPoint>();
 
   /**
    *  攻撃開始範囲の半径
@@ -38,7 +38,7 @@ class Character extends FlxNestedSprite{
   /**
    *  攻撃範囲に補足しているキャラクター
    */
-  public var attackTargets:Array<Character>;
+  public var attackTargets:Array<Character>=new Array<Character>();
 
   /**
    *  攻撃対象とするキャラクター
@@ -53,7 +53,7 @@ class Character extends FlxNestedSprite{
   /**
    *  感情アイコン
    */
-  public var emotion:Emotion;
+  public var emotion:Emotion=new Emotion(0,0);
 
   /**
    *  トゥイーン
@@ -75,27 +75,23 @@ class Character extends FlxNestedSprite{
    */
   public var friends:CharacterPool;
 
+  /**
+   * 
+   */
+  public var index:Int=-1;
+
   override public function new(x:Float,y:Float,type:CharacterType):Void{
     super(x-width/2,y-height/2);
     this.type=type;
     path=new FlxPath();
-    attackTargets=new Array();
-    destinations=new Array<FlxPoint>();
     chasingRange=120;
     attackRange=25;
-    emotion=new Emotion(0,0);
     emotion.kill();
     health=10;
     attackTarget=null;
+
     direction=Direction.DOWN;
 
-    shadow=new FlxNestedSprite();
-    shadow.makeGraphic(32,32,0x00000000).drawEllipse(0,0,14,6,0x33000000);
-    shadow.relativeX=9;
-    shadow.relativeY=24;
-    add(shadow);
-
-    direction=Direction.UP;
     loadGraphic(AssetPaths.Character__png,true,32,32,true);
     animation.add("IdleUP"    ,[0],10,true);
     animation.add("IdleDOWN"  ,[0+4],10,true);
