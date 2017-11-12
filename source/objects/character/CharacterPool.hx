@@ -21,21 +21,8 @@ class CharacterPool extends FlxTypedGroup<Character>{
 		members.sort(function(a,b){
 			return Std.int(a.y-b.y);
 		});
-
 		avoidSymbolsOverlap();
   }
-
-	private function updatePositions(){
-		positions=new Map<Int,Array<Character>>();
-		forEachAlive(function(character:Character){
-			var index=PlayState.field.getTileIndexByCoords(character.getMidpoint());
-			if(!positions.exists(index)){
-				positions.set(index,[character]);
-			}else{
-				positions[index].push(character);
-			}
-		});
-	}
 
 	/**
 	 * キャラクターの現在位置を更新する
