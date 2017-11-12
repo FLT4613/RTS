@@ -31,9 +31,12 @@ class CharacterPool extends FlxTypedGroup<Character>{
 	 @param   nextIndex 更新後のindex
 	 */
 	public function notifyPositionUpdate(c:Character,prevIndex:Int,nextIndex:Int){
+		// 更新前の位置を削除
 		if(positions.exists(prevIndex)){
 			positions[prevIndex].remove(c);
 		}
+		// 更新後の位置を追加
+		// 既にキャラクターがいるなら、被らないよう移動指示も行う
 		if(positions.exists(nextIndex)){
 			positions[nextIndex].push(c);
 		}else{

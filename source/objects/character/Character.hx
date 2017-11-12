@@ -139,11 +139,13 @@ class Character extends FlxNestedSprite{
     // .add(KnockBack,Chase,function(a){return tween.finished && !attackTargets.empty();})
     // .add(KnockBack,Dead,function(a){return tween.finished && health<=0;})
     .start(Idle);
+
+    FlxG.watch.add(path,"nodes");
   }
 
   override public function update(elapsed:Float):Void{
-    super.update(elapsed);
     fsm.update(elapsed);
+    super.update(elapsed);
     var nextIndex:Int=PlayState.field.getTileIndexByCoords(getMidpoint());
     if(index!=nextIndex){
       CharacterPool.instance.notifyPositionUpdate(this,index,nextIndex);
